@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd /Users/taijyunagai/Documents/projects/rlyehwallet/r-lyeh-wallet-app && node node_modules/.bin/next dev"],
+      "port": 3000,
+      "autoPort": false
+    }
+  ]
+}

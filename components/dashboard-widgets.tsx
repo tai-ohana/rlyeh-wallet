@@ -22,6 +22,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import type { Profile } from '@/lib/types'
+import { NumberTicker } from '@/components/ui/number-ticker'
 
 // =============================================
 // 1. Welcome Header — Greeting + quick stats in feed column
@@ -52,7 +53,7 @@ export function WelcomeHeader({
   const firstName = displayName?.split(/[\s@]/)[0] || '探索者'
 
   return (
-    <div className="px-4 py-4 border-b border-border/50">
+    <div className="px-4 py-4 border-b border-border/40">
       {/* Greeting */}
       <div className="flex items-center justify-between mb-3">
         <div>
@@ -60,10 +61,13 @@ export function WelcomeHeader({
           <h2 className="text-lg font-bold">{firstName}さん</h2>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10">
-            <Flame className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-bold text-orange-500">{streak}</span>
-            <span className="text-xs text-orange-500/80">週連続</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 shadow-depth-1">
+            <Flame className="w-3.5 h-3.5 text-orange-500" />
+            <NumberTicker
+              value={streak}
+              className="text-sm font-bold text-foreground"
+            />
+            <span className="text-[11px] text-muted-foreground">週連続</span>
           </div>
         )}
       </div>
@@ -99,29 +103,29 @@ function QuickStatPill({
   label: string
   color: 'blue' | 'green' | 'orange' | 'purple'
 }) {
-  const colorMap = {
-    blue: 'bg-blue-500/10 text-blue-500',
-    green: 'bg-green-500/10 text-green-500',
-    orange: 'bg-orange-500/10 text-orange-500',
-    purple: 'bg-purple-500/10 text-purple-500',
+  const iconColorMap = {
+    blue: 'text-sky-500',
+    green: 'text-emerald-500',
+    orange: 'text-orange-500',
+    purple: 'text-violet-500',
   }
 
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${colorMap[color]} shrink-0`}>
-      {icon}
-      <span className="text-sm font-bold">{value}</span>
-      <span className="text-xs opacity-80">{label}</span>
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 shadow-depth-1 shrink-0">
+      <span className={iconColorMap[color]}>{icon}</span>
+      <NumberTicker value={value} className="text-sm font-bold text-foreground" />
+      <span className="text-[11px] text-muted-foreground">{label}</span>
     </div>
   )
 }
 
 // SAN値 pill — fun CoC gamification
 function SanityPill({ sanity }: { sanity: number }) {
-  const sanityColor = sanity >= 70
-    ? 'bg-emerald-500/10 text-emerald-500'
+  const iconColor = sanity >= 70
+    ? 'text-emerald-500'
     : sanity >= 40
-      ? 'bg-amber-500/10 text-amber-500'
-      : 'bg-red-500/10 text-red-500'
+      ? 'text-amber-500'
+      : 'text-rose-500'
 
   const sanityIcon = sanity >= 70
     ? <Eye className="w-3.5 h-3.5" />
@@ -130,10 +134,10 @@ function SanityPill({ sanity }: { sanity: number }) {
       : <Skull className="w-3.5 h-3.5" />
 
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${sanityColor} shrink-0`}>
-      {sanityIcon}
-      <span className="text-xs font-medium">SAN</span>
-      <span className="text-sm font-bold">{sanity}</span>
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 shadow-depth-1 shrink-0">
+      <span className={iconColor}>{sanityIcon}</span>
+      <span className="text-[11px] font-medium text-muted-foreground">SAN</span>
+      <NumberTicker value={sanity} className="text-sm font-bold text-foreground" />
     </div>
   )
 }
@@ -152,49 +156,47 @@ export function RoleStats({ plCount, kpCount, totalReports }: RoleStatsProps) {
   const kpRatio = totalReports > 0 ? Math.round((kpCount / totalReports) * 100) : 0
 
   return (
-    <div className="rounded-xl bg-muted/30 p-4 mb-4">
-      <h3 className="font-bold mb-3 flex items-center gap-2 text-sm">
+    <div className="rounded-2xl glass glass-sheen shadow-depth-1 p-4 mb-4">
+      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm text-foreground/90">
         <Swords className="w-4 h-4 text-violet-500" />
         探索スタイル
       </h3>
       <div className="grid grid-cols-2 gap-3">
         {/* PL */}
-        <div className="rounded-lg bg-background/60 p-3 text-center">
+        <div className="rounded-2xl bg-background/40 backdrop-blur-sm border border-border/30 p-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Shield className="w-3.5 h-3.5 text-blue-500" />
-            <span className="text-xs font-medium text-muted-foreground">PL（探索者）</span>
+            <Shield className="w-3.5 h-3.5 text-sky-500" />
+            <span className="text-[11px] font-medium text-muted-foreground">PL（探索者）</span>
           </div>
-          <p className="text-2xl font-bold text-blue-500">{plCount}</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">回</p>
+          <p className="text-2xl font-semibold tracking-tight text-foreground">{plCount}<span className="text-[10px] text-muted-foreground ml-1 font-normal">回</span></p>
           {totalReports > 0 && (
             <div className="mt-2">
-              <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500/70 rounded-full"
+                  className="h-full bg-gradient-to-r from-sky-400 to-sky-500 rounded-full"
                   style={{ width: `${plRatio}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{plRatio}%</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{plRatio}%</p>
             </div>
           )}
         </div>
         {/* KP */}
-        <div className="rounded-lg bg-background/60 p-3 text-center">
+        <div className="rounded-2xl bg-background/40 backdrop-blur-sm border border-border/30 p-3 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Crown className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-xs font-medium text-muted-foreground">KP（進行役）</span>
+            <span className="text-[11px] font-medium text-muted-foreground">KP（進行役）</span>
           </div>
-          <p className="text-2xl font-bold text-amber-500">{kpCount}</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">回</p>
+          <p className="text-2xl font-semibold tracking-tight text-foreground">{kpCount}<span className="text-[10px] text-muted-foreground ml-1 font-normal">回</span></p>
           {totalReports > 0 && (
             <div className="mt-2">
-              <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-amber-500/70 rounded-full"
+                  className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
                   style={{ width: `${kpRatio}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{kpRatio}%</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{kpRatio}%</p>
             </div>
           )}
         </div>
@@ -232,12 +234,12 @@ export function ActiveFriends({ friends }: ActiveFriendsProps) {
   if (friends.length === 0) return null
 
   return (
-    <div className="rounded-xl bg-muted/30 p-4 mb-4">
-      <h3 className="font-bold mb-3 flex items-center gap-2 text-sm">
-        <Users className="w-4 h-4 text-blue-500" />
+    <div className="rounded-2xl glass glass-sheen shadow-depth-1 p-4 mb-4">
+      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm text-foreground/90">
+        <Users className="w-4 h-4 text-sky-500" />
         アクティブなフレンド
       </h3>
-      <div className="space-y-2.5">
+      <div className="space-y-1">
         {friends.slice(0, 5).map((friend) => {
           const timeDiff = Date.now() - new Date(friend.lastActive).getTime()
           const isOnline = timeDiff < 1000 * 60 * 60 * 24 // 24h
@@ -247,21 +249,24 @@ export function ActiveFriends({ friends }: ActiveFriendsProps) {
             <Link
               key={friend.profile.id}
               href={`/user/${friend.profile.username}`}
-              className="flex items-center gap-2.5 hover:bg-muted/50 rounded-lg -mx-1 px-1 py-1 transition-colors"
+              className="flex items-center gap-2.5 -mx-1.5 px-1.5 py-1.5 rounded-xl hover:bg-background/50 transition-colors"
             >
-              <div className="relative">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={friend.profile.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">
+              <div className="relative shrink-0">
+                <Avatar className="w-9 h-9 rounded-xl">
+                  <AvatarImage src={friend.profile.avatar_url || undefined} className="rounded-xl" />
+                  <AvatarFallback className="text-xs rounded-xl">
                     {(friend.profile.display_name || friend.profile.username)?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {isOnline && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-background" />
+                  <span className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center">
+                    <span className="absolute w-3 h-3 rounded-full bg-emerald-400/40 animate-ping" />
+                    <span className="relative w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-background shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                  </span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
+                <p className="text-sm font-medium truncate text-foreground">
                   {friend.profile.display_name || friend.profile.username}
                 </p>
                 {friend.recentScenario && (
@@ -270,7 +275,7 @@ export function ActiveFriends({ friends }: ActiveFriendsProps) {
                   </p>
                 )}
               </div>
-              <span className="text-[10px] text-muted-foreground shrink-0">
+              <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
                 {timeAgo}
               </span>
             </Link>
@@ -328,8 +333,8 @@ export function SuggestedUsers({ users }: SuggestedUsersProps) {
   }
 
   return (
-    <div className="rounded-xl bg-muted/30 p-4 mb-4">
-      <h3 className="font-bold mb-3 flex items-center gap-2 text-sm">
+    <div className="rounded-2xl glass glass-sheen shadow-depth-1 p-4 mb-4">
+      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm text-foreground/90">
         <UserPlus className="w-4 h-4 text-emerald-500" />
         おすすめユーザー
       </h3>
@@ -378,12 +383,12 @@ interface InvestigatorRankProps {
 }
 
 const RANKS = [
-  { min: 0, title: '見習い探索者', icon: Compass, color: 'text-gray-400' },
-  { min: 5, title: '新米探索者', icon: Scroll, color: 'text-green-500' },
-  { min: 15, title: '一般探索者', icon: BookOpen, color: 'text-blue-500' },
+  { min: 0, title: '見習い探索者', icon: Compass, color: 'text-muted-foreground' },
+  { min: 5, title: '新米探索者', icon: Scroll, color: 'text-emerald-500' },
+  { min: 15, title: '一般探索者', icon: BookOpen, color: 'text-sky-500' },
   { min: 30, title: 'ベテラン探索者', icon: Star, color: 'text-amber-500' },
-  { min: 50, title: '上級探索者', icon: Crown, color: 'text-purple-500' },
-  { min: 100, title: '伝説の探索者', icon: Eye, color: 'text-red-500' },
+  { min: 50, title: '上級探索者', icon: Crown, color: 'text-violet-500' },
+  { min: 100, title: '伝説の探索者', icon: Eye, color: 'text-rose-500' },
 ]
 
 export function InvestigatorRank({ totalReports, survivalRate, uniqueScenarios }: InvestigatorRankProps) {
@@ -407,16 +412,23 @@ export function InvestigatorRank({ totalReports, survivalRate, uniqueScenarios }
   const Icon = rank.icon
 
   return (
-    <div className="rounded-xl bg-muted/30 p-4 mb-4">
-      <h3 className="font-bold mb-3 flex items-center gap-2 text-sm">
-        <Icon className={`w-4 h-4 ${rank.color}`} />
+    <div className="rounded-2xl glass glass-sheen shadow-depth-1 p-4 mb-4">
+      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm text-foreground/90">
+        <Compass className="w-4 h-4 text-violet-500" />
         探索者ランク
       </h3>
-      <div className="text-center mb-3">
-        <p className={`text-base font-bold ${rank.color}`}>{rank.title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {totalReports}回の通過 / 生還率 {survivalRate}%
-        </p>
+
+      {/* Rank hero — glass badge with icon */}
+      <div className="flex items-center gap-3 rounded-2xl bg-background/40 backdrop-blur-sm border border-border/30 p-3 mb-3">
+        <div className="w-11 h-11 rounded-xl glass border border-border/40 shadow-depth-1 flex items-center justify-center shrink-0">
+          <Icon className={`w-5 h-5 ${rank.color}`} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground leading-tight">{rank.title}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {totalReports}回の通過 · 生還率 {survivalRate}%
+          </p>
+        </div>
       </div>
 
       {/* Progress bar to next rank */}
@@ -426,9 +438,9 @@ export function InvestigatorRank({ totalReports, survivalRate, uniqueScenarios }
             <span>{rank.title}</span>
             <span>{nextRank.title}</span>
           </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-violet-400 to-violet-500 rounded-full transition-all duration-500"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
@@ -439,18 +451,18 @@ export function InvestigatorRank({ totalReports, survivalRate, uniqueScenarios }
       )}
 
       {/* Mini stats row */}
-      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50">
+      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/40">
         <div className="text-center">
-          <p className="text-sm font-bold">{totalReports}</p>
-          <p className="text-[10px] text-muted-foreground">通過数</p>
+          <p className="text-sm font-semibold tracking-tight text-foreground">{totalReports}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">通過数</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold">{survivalRate}%</p>
-          <p className="text-[10px] text-muted-foreground">生還率</p>
+          <p className="text-sm font-semibold tracking-tight text-foreground">{survivalRate}<span className="text-[10px] text-muted-foreground ml-0.5 font-normal">%</span></p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">生還率</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold">{uniqueScenarios}</p>
-          <p className="text-[10px] text-muted-foreground">シナリオ</p>
+          <p className="text-sm font-semibold tracking-tight text-foreground">{uniqueScenarios}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">シナリオ</p>
         </div>
       </div>
     </div>
@@ -485,7 +497,7 @@ export function MythosTip() {
   }, [])
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-muted/30 to-primary/5 p-4 mb-4 border border-border/30">
+    <div className="rounded-2xl glass glass-sheen shadow-depth-1 bg-gradient-to-br from-transparent to-primary/5 p-4 mb-4">
       <div className="flex items-start gap-2.5">
         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
           <Scroll className="w-4 h-4 text-primary" />
@@ -523,8 +535,8 @@ export function MilestoneBanner({ totalReports }: MilestoneProps) {
   if (!milestone) return null
 
   return (
-    <div className="px-4 py-3 border-b border-border/50">
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border border-amber-500/20">
+    <div className="px-4 py-3 border-b border-border/40">
+      <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border border-amber-500/25 backdrop-blur-md shadow-depth-1 glass-sheen">
         <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
           <Star className="w-5 h-5 text-amber-500" />
         </div>

@@ -51,43 +51,43 @@ type FilterType = 'all' | 'like' | 'follow' | 'mention' | 'friend_request'
 // Notification type config — color, icon, accent for each type
 const NOTIF_CONFIG: Record<string, {
   icon: React.ReactNode
-  accentColor: string     // icon background
+  accentColor: string     // icon background (glass + subtle tint)
   accentRing: string      // ring color for avatar
   label: string
 }> = {
   like: {
-    icon: <Heart className="w-4 h-4 text-red-500" />,
-    accentColor: 'bg-red-500/10',
-    accentRing: 'ring-red-500/30',
+    icon: <Heart className="w-4 h-4 text-rose-500" />,
+    accentColor: 'glass border border-rose-500/20 shadow-depth-1',
+    accentRing: 'ring-rose-500/25',
     label: 'いいね',
   },
   follow: {
     icon: <Users className="w-4 h-4 text-emerald-500" />,
-    accentColor: 'bg-emerald-500/10',
-    accentRing: 'ring-emerald-500/30',
+    accentColor: 'glass border border-emerald-500/20 shadow-depth-1',
+    accentRing: 'ring-emerald-500/25',
     label: 'フレンド',
   },
   friend_request: {
-    icon: <UserPlus className="w-4 h-4 text-blue-500" />,
-    accentColor: 'bg-blue-500/10',
-    accentRing: 'ring-blue-500/30',
+    icon: <UserPlus className="w-4 h-4 text-sky-500" />,
+    accentColor: 'glass border border-sky-500/20 shadow-depth-1',
+    accentRing: 'ring-sky-500/25',
     label: '申請',
   },
   mention: {
     icon: <AtSign className="w-4 h-4 text-amber-500" />,
-    accentColor: 'bg-amber-500/10',
-    accentRing: 'ring-amber-500/30',
+    accentColor: 'glass border border-amber-500/20 shadow-depth-1',
+    accentRing: 'ring-amber-500/25',
     label: 'メンション',
   },
   share_code: {
-    icon: <Share2 className="w-4 h-4 text-purple-500" />,
-    accentColor: 'bg-purple-500/10',
-    accentRing: 'ring-purple-500/30',
+    icon: <Share2 className="w-4 h-4 text-violet-500" />,
+    accentColor: 'glass border border-violet-500/20 shadow-depth-1',
+    accentRing: 'ring-violet-500/25',
     label: '共有',
   },
   system: {
     icon: <Info className="w-4 h-4 text-muted-foreground" />,
-    accentColor: 'bg-muted',
+    accentColor: 'glass border border-border/40 shadow-depth-1',
     accentRing: 'ring-border',
     label: 'システム',
   },
@@ -337,9 +337,9 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div className="-my-6 max-w-[600px] mx-auto border-x border-border/50 min-h-screen">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3">
-          <h1 className="text-xl font-bold">通知</h1>
+      <div className="-my-6 max-w-[600px] mx-auto border-x border-border/40 min-h-screen">
+        <div className="sticky top-0 z-10 glass-strong border-b border-border/40 px-5 py-3.5">
+          <h1 className="text-xl font-semibold tracking-tight">通知</h1>
         </div>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -349,11 +349,11 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="-my-6 max-w-[600px] mx-auto border-x border-border/50 min-h-screen">
+    <div className="-my-6 max-w-[600px] mx-auto border-x border-border/40 min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="px-4 py-3">
-          <h1 className="text-xl font-bold">通知</h1>
+      <div className="sticky top-0 z-10 glass-strong border-b border-border/40">
+        <div className="px-5 py-3.5">
+          <h1 className="text-xl font-semibold tracking-tight">通知</h1>
         </div>
 
         {/* Filter tabs */}
@@ -369,7 +369,7 @@ export default function NotificationsPage() {
             active={filter === 'like'}
             onClick={() => setFilter('like')}
             count={typeCounts['like'] || 0}
-            color="text-red-500"
+            color="text-rose-500"
           >
             <Heart className="w-3.5 h-3.5" />
             いいね
@@ -378,7 +378,7 @@ export default function NotificationsPage() {
             active={filter === 'friend_request'}
             onClick={() => setFilter('friend_request')}
             count={typeCounts['friend_request'] || 0}
-            color="text-blue-500"
+            color="text-sky-500"
           >
             <UserPlus className="w-3.5 h-3.5" />
             申請
@@ -410,8 +410,8 @@ export default function NotificationsPage() {
           {groupedNotifications.map((group) => (
             <div key={group.label}>
               {/* Date group header */}
-              <div className="px-4 py-2 bg-muted/30 border-b border-border/30">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="px-5 py-2 bg-background/30 backdrop-blur-sm border-b border-border/30">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   {group.label}
                 </span>
               </div>
@@ -519,14 +519,14 @@ function NotificationRow({
   return (
     <div
       className={cn(
-        'border-b border-border/50 transition-colors hover:bg-accent/30',
-        !notification.is_read && 'bg-primary/[0.02]',
+        'border-b border-border/40 transition-colors hover:bg-background/40',
+        !notification.is_read && 'bg-primary/[0.03]',
       )}
     >
-      <div className="px-4 py-3.5">
+      <div className="px-5 py-3.5">
         <div className="flex gap-3">
           {/* Left: Type icon */}
-          <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5', config.accentColor)}>
+          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5', config.accentColor)}>
             {config.icon}
           </div>
 
@@ -537,9 +537,9 @@ function NotificationRow({
               {/* User avatar(s) */}
               {notification.from_user && (
                 <Link href={`/user/${notification.from_user.username}`} className="shrink-0">
-                  <Avatar className={cn('w-9 h-9 ring-2', config.accentRing)}>
-                    <AvatarImage src={notification.from_user.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs">
+                  <Avatar className={cn('w-9 h-9 rounded-xl ring-1 ring-offset-1 ring-offset-background', config.accentRing)}>
+                    <AvatarImage src={notification.from_user.avatar_url || undefined} className="rounded-xl" />
+                    <AvatarFallback className="text-xs rounded-xl">
                       {(notification.from_user.display_name || notification.from_user.username)?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

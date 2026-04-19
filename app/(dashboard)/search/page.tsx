@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, User, BookOpen, Loader2, LayoutGrid, List, UserPlus, UserCheck, Clock, Star, Tag } from 'lucide-react'
+import { Search, User, BookOpen, Loader2, LayoutGrid, List, UserPlus, UserCheck, Clock, Star, Tag, TrendingUp, Users, KeyRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { SessionCard, SessionCardGrid } from '@/components/session-card'
 import { toast } from 'sonner'
@@ -64,6 +64,58 @@ function SearchPageContent() {
   const [result, setResult] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'name_asc'>('date_desc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  // Discovery state (shown before search)
+  const [discoveryReports, setDiscoveryReports] = useState<PlayReport[]>([])
+  const [discoveryKPs, setDiscoveryKPs] = useState<Profile[]>([])
+  const [discoveryLoading, setDiscoveryLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadDiscovery() {
+      const supabase = createClient()
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      // Popular recent reports
+      const { data: reports } = await supabase
+        .from('play_reports')
+        .select(`
+          *,
+          profile:profiles!play_reports_user_id_fkey(id, username, display_name, avatar_url),
+          participants:play_report_participants(*, profile:profiles(id, username, display_name, avatar_url)),
+          likes:likes(id)
+        `)
+        .eq('privacy_setting', 'public')
+        .eq('is_mini', false)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(8)
+
+      setDiscoveryReports((reports || []).map(r => ({ ...r, likes_count: r.likes?.length || 0 })) as PlayReport[])
+
+      // Active KPs (recent KP participants)
+      const { data: kpParticipants } = await supabase
+        .from('play_report_participants')
+        .select('user_id')
+        .eq('role', 'KP')
+        .not('user_id', 'is', null)
+        .limit(30)
+
+      const kpIds = [...new Set((kpParticipants || []).map(p => p.user_id).filter(Boolean))] as string[]
+      if (kpIds.length > 0) {
+        const { data: kpProfiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', kpIds.slice(0, 6))
+
+        setDiscoveryKPs(kpProfiles || [])
+      }
+
+      setDiscoveryLoading(false)
+    }
+    loadDiscovery()
+    loadPopularTags()
+  }, [])
 
 
   // Load popular tags
@@ -239,10 +291,10 @@ function SearchPageContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">検索</h1>
-        <p className="text-muted-foreground">シナリオ、ユーザー、配信者を検索</p>
+      {/* Header — visionOS hero */}
+      <div className="rounded-3xl glass glass-sheen shadow-depth-1 px-6 py-5">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">検索</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">シナリオ、ユーザー、配信者を検索</p>
       </div>
 
       <Tabs defaultValue={initialTab} className="space-y-6" onValueChange={(v) => {
@@ -349,6 +401,81 @@ function SearchPageContent() {
               </Button>
             </div>
           </form>
+
+          {/* Discovery — shown before any search */}
+          {!hasSearched && (
+            <div className="space-y-8">
+              {/* Popular reports */}
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  最近の記録
+                </h2>
+                {discoveryLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <SessionCardGrid columns={4}>
+                    {discoveryReports.map(report => (
+                      <SessionCard key={report.id} report={report} showAuthor />
+                    ))}
+                  </SessionCardGrid>
+                )}
+              </div>
+
+              {/* Active KPs */}
+              {!discoveryLoading && discoveryKPs.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-primary" />
+                    KP経験者
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {discoveryKPs.map(kp => (
+                      <Link key={kp.id} href={`/user/${kp.username}`}>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-card border border-border/50 hover:border-primary/40 hover:bg-accent transition-colors">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage src={kp.avatar_url || undefined} />
+                            <AvatarFallback className="text-[10px]">
+                              {(kp.display_name || kp.username)?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{kp.display_name || kp.username}</span>
+                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 bg-blue-500/10 text-blue-600">KP</Badge>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Popular tags */}
+              {popularTags.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-primary" />
+                    人気タグ
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {popularTags.map(tag => (
+                      <button
+                        key={tag.tag_name}
+                        type="button"
+                        onClick={() => {
+                          setQuery(tag.tag_name)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border/50 hover:border-primary/40 hover:bg-accent text-sm transition-colors"
+                      >
+                        <span>#{tag.tag_name}</span>
+                        <span className="text-xs text-muted-foreground">{tag.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Results */}
           {hasSearched && (

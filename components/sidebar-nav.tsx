@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -30,6 +31,8 @@ import {
     PanelLeft
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { springSoft } from '@/lib/motion'
+import { Shimmer } from '@/components/ui/shimmer'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/types'
 import { toast } from 'sonner'
@@ -59,9 +62,13 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
         }
     }, [])
 
-    // Save collapse state
+    // Save collapse state + expose width as a CSS var so main content can reserve space
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', String(isCollapsed))
+        document.documentElement.style.setProperty(
+            '--sidebar-w',
+            isCollapsed ? '68px' : '260px',
+        )
     }, [isCollapsed])
 
     useEffect(() => {
@@ -195,65 +202,96 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
             </div>
 
             {/* Nav Items */}
-            <div className="flex-1 space-y-0.5">
-                {navItems.map((item) => {
-                    const isActive = item.href === '/dashboard'
-                        ? pathname === '/dashboard'
-                        : pathname.startsWith(item.href)
+            <LayoutGroup id="sidebar-nav">
+                <div className="flex-1 space-y-0.5">
+                    {navItems.map((item) => {
+                        const isActive = item.href === '/dashboard'
+                            ? pathname === '/dashboard'
+                            : pathname.startsWith(item.href)
 
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                'flex items-center gap-4 px-3 py-3 rounded-full',
-                                'hover:bg-accent transition-all duration-200 group relative',
-                                isActive && 'font-bold',
-                                isCollapsed && 'justify-center px-3'
-                            )}
-                            title={isCollapsed ? item.label : undefined}
-                        >
-                            <div className="relative">
-                                {item.icon}
-                                {item.label === '通知' && unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </span>
-                                )}
-                            </div>
-                            <span
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
                                 className={cn(
-                                    'text-xl whitespace-nowrap transition-all duration-300',
-                                    isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'
+                                    'flex items-center gap-4 px-3 py-3 rounded-full',
+                                    'group relative isolate',
+                                    'hover:bg-accent/60 transition-colors duration-200',
+                                    isActive && 'font-bold',
+                                    isCollapsed && 'justify-center px-3'
                                 )}
+                                title={isCollapsed ? item.label : undefined}
                             >
-                                {item.label}
-                            </span>
-                        </Link>
-                    )
-                })}
-            </div>
+                                {isActive && (
+                                    <motion.span
+                                        layoutId="sidebar-active-pill"
+                                        className="absolute inset-0 -z-10 rounded-full glass-strong shadow-depth-1"
+                                        transition={springSoft}
+                                    />
+                                )}
+                                <motion.div
+                                    className="relative"
+                                    whileTap={{ scale: 0.88 }}
+                                    transition={{ type: 'spring', stiffness: 600, damping: 24 }}
+                                >
+                                    {item.icon}
+                                    <AnimatePresence>
+                                        {item.label === '通知' && unreadCount > 0 && (
+                                            <motion.span
+                                                key={unreadCount}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                exit={{ scale: 0, opacity: 0 }}
+                                                transition={{ type: 'spring', stiffness: 600, damping: 20 }}
+                                                className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center"
+                                            >
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+                                <span
+                                    className={cn(
+                                        'text-xl whitespace-nowrap transition-all duration-300',
+                                        isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'
+                                    )}
+                                >
+                                    {item.label}
+                                </span>
+                            </Link>
+                        )
+                    })}
+                </div>
+            </LayoutGroup>
 
             {/* New Post Button */}
             <Link href="/reports/new" className="my-4">
-                <Button
-                    className={cn(
-                        'h-12 rounded-full font-bold shadow-lg transition-all duration-300',
-                        isCollapsed ? 'w-12 p-0' : 'w-full text-lg'
-                    )}
-                    size="lg"
-                    title={isCollapsed ? '投稿' : undefined}
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 26 }}
                 >
-                    <PenSquare className="w-5 h-5 shrink-0" />
-                    <span
+                    <Button
                         className={cn(
-                            'ml-2 whitespace-nowrap transition-all duration-300',
-                            isCollapsed ? 'w-0 opacity-0 overflow-hidden ml-0' : 'w-auto opacity-100'
+                            'relative h-12 rounded-full font-bold shadow-lg overflow-hidden transition-[background,box-shadow] duration-300',
+                            'hover:shadow-primary/30',
+                            isCollapsed ? 'w-12 p-0' : 'w-full text-lg'
                         )}
+                        size="lg"
+                        title={isCollapsed ? '投稿' : undefined}
                     >
-                        投稿
-                    </span>
-                </Button>
+                        <Shimmer color="rgba(255,255,255,0.45)" duration="3.8s" />
+                        <PenSquare className="relative w-5 h-5 shrink-0" />
+                        <span
+                            className={cn(
+                                'relative ml-2 whitespace-nowrap transition-all duration-300',
+                                isCollapsed ? 'w-0 opacity-0 overflow-hidden ml-0' : 'w-auto opacity-100'
+                            )}
+                        >
+                            投稿
+                        </span>
+                    </Button>
+                </motion.div>
             </Link>
 
             {/* User Menu */}

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -8,29 +8,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
-import { SessionCard, SessionCardGrid } from '@/components/session-card'
-import { FolderCard, groupReportsIntoFolders, isVirtualFolder, isReportFolder, isPlayReport, calculateFolderStats } from '@/components/folder-card'
-import type { ReportFolder } from '@/lib/types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Trash2, FolderOpen, ArrowLeft } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2 } from 'lucide-react'
 import type { Profile, PlayReport, ScenarioPreference } from '@/lib/types'
 import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
-import { ActivityTimeline } from '@/components/activity-timeline'
 import { TrpgPreferenceDisplay } from '@/components/trpg-preference-display'
+import { InvestigatorRank } from '@/components/dashboard-widgets'
 
 interface UserStats {
   totalSessions: number
@@ -181,14 +166,7 @@ export default function UserProfilePage() {
   })
   const [statsTab, setStatsTab] = useState<'stats' | 'profile'>('stats')
   const [favoriteReports, setFavoriteReports] = useState<PlayReport[]>([])
-  const [folders, setFolders] = useState<ReportFolder[]>([])
-  const [openFolder, setOpenFolder] = useState<(ReportFolder | { name: string; reports: PlayReport[]; isVirtual: true }) | null>(null)
   const [wantToPlayScenarios, setWantToPlayScenarios] = useState<ScenarioPreference[]>([])
-
-  // Group reports into folders (mini cards go into ミニカード folder)
-  const groupedItems = useMemo(() => {
-    return groupReportsIntoFolders(reports, folders)
-  }, [reports, folders])
 
   useEffect(() => {
     async function fetchData() {
@@ -276,15 +254,6 @@ export default function UserProfilePage() {
         `)
         .eq('user_id', profileData.id)
         .order('play_date_start', { ascending: false })
-
-      // Fetch user's folders
-      const { data: foldersData } = await supabase
-        .from('report_folders')
-        .select('*')
-        .eq('user_id', profileData.id)
-        .order('sort_order', { ascending: true })
-
-      setFolders(foldersData || [])
 
       // Fetch friends - users this profile is mutually connected with
       // A friend = mutual follow (both follow each other)
@@ -471,30 +440,6 @@ export default function UserProfilePage() {
   }, [username])
 
   // Delete folder handler (own profile only)
-  async function handleDeleteFolder(folderId: string) {
-    const supabase = createClient()
-
-    // Unassign all reports from this folder
-    await supabase
-      .from('play_reports')
-      .update({ folder_id: null })
-      .eq('folder_id', folderId)
-
-    const { error } = await supabase
-      .from('report_folders')
-      .delete()
-      .eq('id', folderId)
-
-    if (error) {
-      toast.error('フォルダの削除に失敗しました')
-    } else {
-      toast.success('フォルダを削除しました（中の記録はウォレットに残ります）')
-      setFolders(folders.filter(f => f.id !== folderId))
-      setOpenFolder(null)
-      window.location.reload()
-    }
-  }
-
   async function sendFriendRequest() {
     if (!currentUserId || !profile) return
 
@@ -634,11 +579,11 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-10">
-      {/* Profile Header */}
-      <div className="flex items-start gap-6">
-        <Avatar className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl border-2 border-border/50">
+      {/* Profile Header — visionOS hero card */}
+      <div className="flex items-start gap-6 rounded-3xl glass glass-sheen shadow-depth-2 px-6 py-6 sm:px-8 sm:py-7">
+        <Avatar className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-2 border-border/40 shadow-depth-1">
           <AvatarImage src={profile.avatar_url || ''} alt={profile.display_name || ''} />
-          <AvatarFallback className="rounded-xl text-3xl sm:text-4xl bg-muted">
+          <AvatarFallback className="rounded-2xl text-3xl sm:text-4xl bg-muted">
             {(profile.display_name || profile.username).charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -762,154 +707,33 @@ export default function UserProfilePage() {
         </div>
 
         {statsTab === 'stats' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <StatCard icon={<BookOpen className="w-4 h-4" />} label="総セッション" value={stats.totalSessions} />
-            <StatCard icon={<Users className="w-4 h-4" />} label="KP回数" value={stats.asKP} />
-            <StatCard icon={<Trophy className="w-4 h-4" />} label="PL回数" value={stats.asPL} />
-            <StatCard icon={<BookOpen className="w-4 h-4" />} label="シナリオ数" value={stats.uniqueScenarios} />
-            <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
-            <StatCard icon={<Percent className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
+          <div className="space-y-4">
+            <InvestigatorRank
+              totalReports={stats.totalSessions}
+              survivalRate={stats.survivalRate}
+              uniqueScenarios={stats.uniqueScenarios}
+            />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <StatCard icon={<BookOpen className="w-4 h-4" />} label="総セッション" value={stats.totalSessions} />
+              <StatCard icon={<Users className="w-4 h-4" />} label="KP回数" value={stats.asKP} />
+              <StatCard icon={<Trophy className="w-4 h-4" />} label="PL回数" value={stats.asPL} />
+              <StatCard icon={<BookOpen className="w-4 h-4" />} label="シナリオ数" value={stats.uniqueScenarios} />
+              <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
+              <StatCard icon={<Percent className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
+            </div>
           </div>
         ) : (
           <TrpgPreferenceDisplay profile={profile} favoriteReports={favoriteReports} wantToPlayScenarios={wantToPlayScenarios} />
         )}
       </div>
 
-      {/* Collection & Timeline */}
-      <Tabs defaultValue="collection" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="collection">コレクション</TabsTrigger>
-          <TabsTrigger value="timeline">タイムライン</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="collection">
-          {reports.length === 0 ? (
-            <div className="text-center py-12 bg-card/50 rounded-lg border border-border/50">
-              <p className="text-muted-foreground mb-4">まだセッション記録がありません</p>
-              {isOwnProfile && (
-                <Link href="/reports/new">
-                  <Button>最初の記録を作成</Button>
-                </Link>
-              )}
-            </div>
-          ) : openFolder ? (
-            // Inside folder — show folder contents
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-border/50">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setOpenFolder(null)}
-                  className="gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  戻る
-                </Button>
-                <div className="flex items-center gap-2 flex-1">
-                  <FolderOpen className="w-5 h-5 text-primary" />
-                  <h2 className="font-semibold">{openFolder.name}</h2>
-                  <span className="text-sm text-muted-foreground">
-                    ({'reports' in openFolder ? openFolder.reports.length : 0}件)
-                  </span>
-                </div>
-                {/* Delete button — own profile, real folders only */}
-                {isOwnProfile && isReportFolder(openFolder) && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">フォルダを削除</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>フォルダを削除しますか？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          「{openFolder.name}」フォルダを削除します。フォルダ内の記録は削除されず、ウォレットに残ります。
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteFolder(openFolder.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          削除する
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-              <SessionCardGrid columns={4}>
-                {'reports' in openFolder && openFolder.reports.map((report) => (
-                  <SessionCard key={report.id} report={report} showEdit={isOwnProfile} />
-                ))}
-              </SessionCardGrid>
-            </div>
-          ) : (
-            <SessionCardGrid columns={4}>
-              {/* Favorite reports first (non-mini only) */}
-              {groupedItems
-                .filter((item): item is PlayReport => isPlayReport(item) && !!profile.favorite_report_ids?.includes(item.id))
-                .map((report) => (
-                  <SessionCard key={report.id} report={report} showEdit={isOwnProfile} isFavorite />
-                ))}
-              {/* Grouped items (folders + remaining reports) */}
-              {groupedItems.map((item, index) => {
-                if (isVirtualFolder(item)) {
-                  return (
-                    <FolderCard
-                      key={`vf-${item.name}-${index}`}
-                      folder={{
-                        id: `virtual-${item.name}`,
-                        user_id: '',
-                        name: item.name,
-                        description: null,
-                        cover_report_id: null,
-                        sort_order: 0,
-                        created_at: '',
-                        updated_at: '',
-                        reports: item.reports,
-                        ...calculateFolderStats(item.reports),
-                      }}
-                      onClick={() => setOpenFolder(item)}
-                    />
-                  )
-                } else if (isPlayReport(item)) {
-                  // Skip favorites (already rendered above)
-                  if (profile.favorite_report_ids?.includes(item.id)) return null
-                  return (
-                    <SessionCard key={item.id} report={item} showEdit={isOwnProfile} />
-                  )
-                } else {
-                  // Real folder (ReportFolder)
-                  const folder = item as ReportFolder
-                  return (
-                    <FolderCard
-                      key={folder.id}
-                      folder={folder}
-                      onClick={() => setOpenFolder(folder)}
-                    />
-                  )
-                }
-              })}
-            </SessionCardGrid>
-          )}
-        </TabsContent>
-
-        <TabsContent value="timeline">
-          <ActivityTimeline
-            reports={reports}
-            profile={profile}
-            currentUserId={currentUserId}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Achievements placeholder */}
+      {statsTab === 'stats' && (
+        <div className="mt-6 rounded-2xl border border-dashed border-border/50 glass px-6 py-8 text-center space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">アチーブメント</p>
+          <p className="text-xs text-muted-foreground/60">Coming soon — セッション数・生還・KP達成など</p>
+        </div>
+      )}
     </div>
   )
 }

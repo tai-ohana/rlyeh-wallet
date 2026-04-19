@@ -3,100 +3,107 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* R'lyeh Wallet - Sophisticated Monotone Theme */
+/* R'lyeh Wallet - Monotone Theme
+ * 基調はブラック&ホワイト。彩度を持つ色は semantic な用途（destructive=赤、likeハートなど）のみ。 */
 
 :root {
-  /* Light mode - Cool blue-white, clean & refined */
-  /* background: 純白ではなくわずかにブルーがかった白 */
-  --background: oklch(0.985 0.006 240);
-  --foreground: oklch(0.16 0.015 240);
-  /* card: 背景よりほんの少しだけ白く、浮いて見える */
-  --card: oklch(0.995 0.004 240);
-  --card-foreground: oklch(0.16 0.015 240);
-  --popover: oklch(0.995 0.004 240);
-  --popover-foreground: oklch(0.16 0.015 240);
-  /* primary: ダークモードのシアンと対になる深いネイビー */
-  --primary: oklch(0.32 0.08 240);
-  --primary-foreground: oklch(0.98 0.004 240);
-  /* secondary: うっすらブルーグレーのパネル */
-  --secondary: oklch(0.945 0.012 230);
-  --secondary-foreground: oklch(0.25 0.04 240);
-  /* muted: 少しクールなライトグレー */
-  --muted: oklch(0.948 0.010 230);
-  --muted-foreground: oklch(0.46 0.025 230);
-  /* accent: ホバー時のクールブルー系 */
-  --accent: oklch(0.940 0.014 225);
-  --accent-foreground: oklch(0.25 0.05 240);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  /* border/input: ブルーグレーの繊細なライン */
-  --border: oklch(0.880 0.014 230);
-  --input: oklch(0.880 0.014 230);
-  /* ring: primaryと同系のネイビーフォーカスリング */
-  --ring: oklch(0.52 0.09 240);
-  /* chart: ネイビー〜シアンのトーン */
-  --chart-1: oklch(0.32 0.08 240);
-  --chart-2: oklch(0.48 0.08 230);
-  --chart-3: oklch(0.62 0.09 210);
-  --chart-4: oklch(0.72 0.08 200);
-  --chart-5: oklch(0.82 0.06 195);
+  /* Light — ほぼ純白ベース、完全ニュートラル */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.14 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0 0);
+  /* primary: ほぼ黒 — スタイリッシュモノトーン */
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.99 0 0);
+  /* secondary/muted/accent: ニュートラルなグレー階調 */
+  --secondary: oklch(0.965 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+  --accent: oklch(0.945 0 0);
+  --accent-foreground: oklch(0.18 0 0);
+  /* destructive: はっきりした赤 */
+  --destructive: oklch(0.60 0.24 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: oklch(0.22 0 0);
+  /* chart: モノトーンの階調 */
+  --chart-1: oklch(0.20 0 0);
+  --chart-2: oklch(0.40 0 0);
+  --chart-3: oklch(0.60 0 0);
+  --chart-4: oklch(0.75 0 0);
+  --chart-5: oklch(0.88 0 0);
   --radius: 0.625rem;
-  /* sidebar: 背景より少しだけ濃いクールホワイト */
-  --sidebar: oklch(0.968 0.010 235);
-  --sidebar-foreground: oklch(0.16 0.015 240);
-  --sidebar-primary: oklch(0.32 0.08 240);
-  --sidebar-primary-foreground: oklch(0.98 0.004 240);
-  --sidebar-accent: oklch(0.940 0.014 225);
-  --sidebar-accent-foreground: oklch(0.25 0.05 240);
-  --sidebar-border: oklch(0.880 0.014 230);
-  --sidebar-ring: oklch(0.52 0.09 240);
+  /* sidebar: ごく僅かに背景と差をつけ層を出す */
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0.14 0 0);
+  --sidebar-primary: oklch(0.18 0 0);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.945 0 0);
+  --sidebar-accent-foreground: oklch(0.18 0 0);
+  --sidebar-border: oklch(0.90 0 0);
+  --sidebar-ring: oklch(0.22 0 0);
+
+  /* visionOS-style tokens — translucent materials & soft depth */
+  --glass-bg: oklch(1 0 0 / 0.65);
+  --glass-bg-strong: oklch(1 0 0 / 0.82);
+  --glass-border: oklch(0.92 0 0 / 0.7);
+  --glass-tint: oklch(0.98 0 0 / 0.55);
+  --glow-primary: oklch(0.55 0.15 260 / 0.12);
+  /* Ambient wallpaper gradient seeds (subtle) */
+  --ambient-a: oklch(0.96 0.04 240 / 0.6);
+  --ambient-b: oklch(0.97 0.03 300 / 0.45);
+  --ambient-c: oklch(0.98 0.02 160 / 0.35);
 }
 
 .dark {
-  /* Dark mode - Deep navy cosmic ocean × cyan accent */
-  /* background: #080e1a 相当 — 深宇宙ネイビー */
-  --background: oklch(0.115 0.025 240);
-  /* card: #0d1628 相当 — 少し明るいネイビー、glass感 */
-  --card: oklch(0.155 0.030 240);
-  --card-foreground: oklch(0.93 0.01 200);
-  --popover: oklch(0.145 0.028 240);
-  --popover-foreground: oklch(0.93 0.01 200);
-  /* foreground: 白っぽいシアン寄り */
-  --foreground: oklch(0.93 0.01 200);
-  /* primary: シアン/アクア — メインアクセント */
-  --primary: oklch(0.78 0.13 195);
-  --primary-foreground: oklch(0.10 0.02 240);
-  /* secondary: ネイビーより少し明るいパネル */
-  --secondary: oklch(0.20 0.035 240);
-  --secondary-foreground: oklch(0.85 0.02 200);
-  /* muted: 暗めのネイビーパネル */
-  --muted: oklch(0.19 0.030 240);
-  --muted-foreground: oklch(0.58 0.04 220);
-  /* accent: シアン寄りのホバー/強調 */
-  --accent: oklch(0.22 0.040 230);
-  --accent-foreground: oklch(0.88 0.05 195);
-  --destructive: oklch(0.52 0.22 25);
-  --destructive-foreground: oklch(0.93 0 0);
-  /* border: シアン微光のネイビーボーダー */
-  --border: oklch(0.28 0.04 230);
-  --input: oklch(0.20 0.035 240);
-  /* ring: シアンのフォーカスリング */
-  --ring: oklch(0.72 0.12 195);
-  /* chart: シアン〜パープルのグラデ */
-  --chart-1: oklch(0.78 0.13 195);
-  --chart-2: oklch(0.68 0.14 250);
-  --chart-3: oklch(0.62 0.10 220);
-  --chart-4: oklch(0.55 0.08 240);
-  --chart-5: oklch(0.40 0.05 230);
-  /* sidebar */
-  --sidebar: oklch(0.10 0.022 240);
-  --sidebar-foreground: oklch(0.88 0.02 200);
-  --sidebar-primary: oklch(0.78 0.13 195);
-  --sidebar-primary-foreground: oklch(0.10 0.02 240);
-  --sidebar-accent: oklch(0.19 0.032 240);
-  --sidebar-accent-foreground: oklch(0.88 0.05 195);
-  --sidebar-border: oklch(0.26 0.04 230);
-  --sidebar-ring: oklch(0.72 0.12 195);
+  /* Dark — ほぼ純黒ベース、完全ニュートラル */
+  --background: oklch(0.115 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  /* primary: 白 — ダークの中で鮮烈に浮く */
+  --primary: oklch(0.96 0 0);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.185 0 0);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.185 0 0);
+  --muted-foreground: oklch(0.62 0 0);
+  --accent: oklch(0.21 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.24 0 0);
+  --input: oklch(0.20 0 0);
+  --ring: oklch(0.82 0 0);
+  --chart-1: oklch(0.96 0 0);
+  --chart-2: oklch(0.78 0 0);
+  --chart-3: oklch(0.60 0 0);
+  --chart-4: oklch(0.42 0 0);
+  --chart-5: oklch(0.28 0 0);
+  --sidebar: oklch(0.10 0 0);
+  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar-primary: oklch(0.96 0 0);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: oklch(0.19 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.22 0 0);
+  --sidebar-ring: oklch(0.82 0 0);
+
+  /* visionOS-style tokens — dark */
+  --glass-bg: oklch(0.18 0 0 / 0.55);
+  --glass-bg-strong: oklch(0.18 0 0 / 0.78);
+  --glass-border: oklch(0.35 0 0 / 0.45);
+  --glass-tint: oklch(0.22 0 0 / 0.55);
+  --glow-primary: oklch(0.72 0.14 250 / 0.18);
+  --ambient-a: oklch(0.25 0.08 260 / 0.45);
+  --ambient-b: oklch(0.22 0.07 300 / 0.35);
+  --ambient-c: oklch(0.18 0.05 180 / 0.28);
 }
 
 @theme inline {
@@ -159,6 +166,106 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* =============================================
+ * visionOS-style utilities — translucent glass,
+ * layered depth, and soft ambient wallpaper.
+ * ============================================= */
+@layer utilities {
+  /* Ambient wallpaper: three colored blobs behind content (very subtle) */
+  .bg-ambient {
+    background-image:
+      radial-gradient(1100px 700px at 8% -10%, var(--ambient-a), transparent 60%),
+      radial-gradient(900px 600px at 110% 10%, var(--ambient-b), transparent 55%),
+      radial-gradient(800px 600px at 50% 120%, var(--ambient-c), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  /* Translucent glass surface (regular) */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: saturate(180%) blur(22px);
+    -webkit-backdrop-filter: saturate(180%) blur(22px);
+    border: 1px solid var(--glass-border);
+  }
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border: 1px solid var(--glass-border);
+  }
+  .glass-tint {
+    background: var(--glass-tint);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+  }
+
+  /* Apple-style layered depth shadows */
+  .shadow-depth-1 {
+    box-shadow:
+      0 1px 1px oklch(0 0 0 / 0.04),
+      0 2px 6px oklch(0 0 0 / 0.04),
+      0 10px 24px -12px oklch(0 0 0 / 0.10);
+  }
+  .shadow-depth-2 {
+    box-shadow:
+      0 1px 1px oklch(0 0 0 / 0.05),
+      0 4px 14px oklch(0 0 0 / 0.06),
+      0 24px 48px -18px oklch(0 0 0 / 0.18);
+  }
+  .shadow-depth-3 {
+    box-shadow:
+      0 2px 2px oklch(0 0 0 / 0.06),
+      0 8px 24px oklch(0 0 0 / 0.08),
+      0 40px 80px -24px oklch(0 0 0 / 0.24);
+  }
+  .dark .shadow-depth-1 {
+    box-shadow:
+      0 1px 1px oklch(0 0 0 / 0.5),
+      0 2px 6px oklch(0 0 0 / 0.35),
+      0 10px 24px -12px oklch(0 0 0 / 0.55);
+  }
+  .dark .shadow-depth-2 {
+    box-shadow:
+      0 1px 1px oklch(0 0 0 / 0.55),
+      0 6px 18px oklch(0 0 0 / 0.45),
+      0 28px 56px -20px oklch(0 0 0 / 0.70);
+  }
+  .dark .shadow-depth-3 {
+    box-shadow:
+      0 2px 2px oklch(0 0 0 / 0.6),
+      0 10px 28px oklch(0 0 0 / 0.5),
+      0 48px 96px -24px oklch(0 0 0 / 0.8);
+  }
+
+  /* Soft inner highlight — simulates the top-edge light reflection on glass */
+  .glass-sheen {
+    position: relative;
+  }
+  .glass-sheen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.35) 0%,
+      oklch(1 0 0 / 0.04) 18%,
+      transparent 35%
+    );
+    mix-blend-mode: overlay;
+    opacity: 0.9;
+  }
+  .dark .glass-sheen::before {
+    background: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.10) 0%,
+      oklch(1 0 0 / 0.02) 22%,
+      transparent 40%
+    );
   }
 }
 
@@ -251,4 +358,17 @@
 
 .animate-confetti {
   animation: confetti 1.5s ease-out forwards;
+}
+
+/* Shimmer sweep — used by <Shimmer /> overlay on CTAs */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-12deg);
+  }
+  40% {
+    transform: translateX(250%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-12deg);
+  }
 }

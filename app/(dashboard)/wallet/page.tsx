@@ -18,6 +18,7 @@ import {
   Search,
   LayoutGrid,
   List,
+  Rss,
   ArrowUpDown,
   BookOpen,
   Users,
@@ -32,6 +33,7 @@ import {
   HelpCircle,
   Trash2
 } from 'lucide-react'
+import { WalletTimeline } from '@/components/wallet-timeline'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +61,7 @@ import { getProfileLimits } from '@/lib/tier-limits'
 
 type SortOption = 'date_desc' | 'date_asc' | 'name_asc' | 'name_desc'
 type FilterResult = 'all' | 'success' | 'failure'
+type ViewMode = 'grid' | 'list' | 'timeline'
 
 export default function WalletPage() {
   const router = useRouter()
@@ -68,7 +71,7 @@ export default function WalletPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
 
   // View state
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [openFolder, setOpenFolder] = useState<VirtualFolder | ReportFolder | null>(null)
 
   // Filter state
@@ -337,11 +340,11 @@ export default function WalletPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header — visionOS hero */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl glass glass-sheen shadow-depth-1 px-6 py-5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">My Wallet</h1>
-          <p className="text-muted-foreground">作成した記録</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">My Wallet</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">作成した記録</p>
         </div>
         <div className="flex items-center gap-2">
           <ShareCodeInput />
@@ -372,18 +375,36 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<BookOpen className="w-4 h-4" />} label="総セッション" value={stats.totalSessions} />
-        <StatCard icon={<Users className="w-4 h-4" />} label="KP回数" value={stats.asKP} />
-        <StatCard icon={<Trophy className="w-4 h-4" />} label="PL回数" value={stats.asPL} />
-        <StatCard icon={<BookOpen className="w-4 h-4" />} label="シナリオ数" value={stats.uniqueScenarios} />
-        <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
-        <StatCard icon={<Trophy className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
+      {/* Stats — inline condensed row (glass chip style) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm font-medium">
+          <span className="text-foreground">{stats.totalSessions}</span>
+          <span className="text-muted-foreground text-xs">セッション</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm">
+          <span className="text-muted-foreground text-xs">KP</span><span className="font-medium">{stats.asKP}</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm">
+          <span className="text-muted-foreground text-xs">PL</span><span className="font-medium">{stats.asPL}</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm">
+          <span className="font-medium">{stats.uniqueScenarios}</span><span className="text-muted-foreground text-xs">シナリオ</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm">
+          <span className="font-medium">{stats.totalHours.toFixed(0)}</span><span className="text-muted-foreground text-xs">h</span>
+        </span>
+        {stats.survivalRate > 0 && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-border/30 text-sm">
+            <span className="text-muted-foreground text-xs">生還率</span><span className="font-medium">{stats.survivalRate}%</span>
+          </span>
+        )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Timeline view */}
+      {viewMode === 'timeline' && <WalletTimeline />}
+
+      {/* Filters (hidden in timeline mode) */}
+      {viewMode !== 'timeline' && <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px] max-w-sm">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -438,6 +459,7 @@ export default function WalletPage() {
             size="icon"
             onClick={() => setViewMode('grid')}
             className="rounded-none"
+            title="グリッド"
           >
             <LayoutGrid className="w-4 h-4" />
           </Button>
@@ -446,14 +468,24 @@ export default function WalletPage() {
             size="icon"
             onClick={() => setViewMode('list')}
             className="rounded-none"
+            title="リスト"
           >
             <List className="w-4 h-4" />
           </Button>
+          <Button
+            variant={viewMode === 'timeline' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setViewMode('timeline')}
+            className="rounded-none"
+            title="タイムライン"
+          >
+            <Rss className="w-4 h-4" />
+          </Button>
         </div>
-      </div>
+      </div>}
 
       {/* Folder View Header (when inside a folder) */}
-      {openFolder && (
+      {viewMode !== 'timeline' && openFolder && (
         <div className="flex items-center gap-3 pb-2 border-b border-border/50">
           <Button
             variant="ghost"
@@ -507,7 +539,7 @@ export default function WalletPage() {
       )}
 
       {/* Content Area */}
-      {openFolder ? (
+      {viewMode !== 'timeline' && (openFolder ? (
         // Inside folder — show reports only
         filteredReports.length > 0 ? (
           viewMode === 'grid' ? (
@@ -628,7 +660,7 @@ export default function WalletPage() {
         ) : (
           <EmptyState hasFilters={!!searchQuery || filterYear !== 'all' || filterResult !== 'all'} />
         )
-      )}
+      ))}
     </div>
   )
 }
@@ -891,7 +923,7 @@ function MiniCardCreator({ userId, onCreated }: { userId?: string; onCreated: ()
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 rounded-full glass border-border/40 hover:border-primary/30 hover:bg-background/60"
             onClick={() => setOpen(true)}
           >
             <FileText className="w-4 h-4" />
@@ -907,83 +939,81 @@ function MiniCardCreator({ userId, onCreated }: { userId?: string; onCreated: ()
   }
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
       {/* Loading overlay */}
       {creating && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <Card className="w-full max-w-xs mx-4 bg-card border-border">
-            <CardContent className="p-6 flex flex-col items-center gap-4">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-              <div className="text-center space-y-1">
-                <p className="font-semibold text-sm">ミニカードを作成中...</p>
-                <p className="text-xs text-muted-foreground">
-                  {lineCount}件のシナリオを処理しています。
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  しばらくお待ちください
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md">
+          <div className="w-full max-w-xs mx-4 rounded-3xl glass-strong glass-sheen shadow-depth-3 border border-border/40 p-6 flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <div className="text-center space-y-1">
+              <p className="font-semibold text-sm">ミニカードを作成中...</p>
+              <p className="text-xs text-muted-foreground">
+                {lineCount}件のシナリオを処理しています。
+              </p>
+              <p className="text-xs text-muted-foreground">
+                しばらくお待ちください
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
-      <Card className="w-full max-w-lg mx-4 bg-card border-border">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                ミニカード一括作成
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
+      <div ref={containerRef} className="w-full max-w-lg mx-4 rounded-3xl glass-strong glass-sheen shadow-depth-3 border border-border/40 p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl glass border border-border/40 shadow-depth-1 flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-foreground leading-tight">ミニカード一括作成</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 通過済みシナリオを1行ずつ入力（50件以上もOK）
               </p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} disabled={creating}>
-              <X className="w-4 h-4" />
+          </div>
+          <Button variant="ghost" size="icon" className="rounded-full shrink-0" onClick={() => setOpen(false)} disabled={creating}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`毒入りスープ\n狂気山脈\n水底よりの使者\n深きものの結婚式\nペルソナ\n毒蛇の園\n…`}
+          rows={15}
+          disabled={creating}
+          className="font-mono text-sm min-h-[200px] max-h-[50vh] resize-y rounded-2xl bg-background/40 backdrop-blur-sm border-border/40 focus-visible:ring-2 focus-visible:ring-primary/30"
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {lineCount > 0 ? `${lineCount}件のシナリオ` : 'シナリオ名を改行区切りで入力'}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="ghost" className="rounded-full" onClick={() => setOpen(false)} disabled={creating}>
+              キャンセル
+            </Button>
+            <Button className="rounded-full" onClick={handleCreate} disabled={creating || lineCount === 0}>
+              {creating ? (
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" />作成中...</>
+              ) : (
+                `${lineCount}件を作成`
+              )}
             </Button>
           </div>
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={`毒入りスープ\n狂気山脈\n水底よりの使者\n深きものの結婚式\nペルソナ\n毒蛇の園\n…`}
-            rows={15}
-            disabled={creating}
-            className="font-mono text-sm min-h-[200px] max-h-[50vh] resize-y"
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {lineCount > 0 ? `${lineCount}件のシナリオ` : 'シナリオ名を改行区切りで入力'}
-            </span>
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setOpen(false)} disabled={creating}>
-                キャンセル
-              </Button>
-              <Button onClick={handleCreate} disabled={creating || lineCount === 0}>
-                {creating ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" />作成中...</>
-                ) : (
-                  `${lineCount}件を作成`
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <Card className="bg-card/50 border-border/50">
+    <Card className="glass glass-sheen shadow-depth-1 border-border/30 rounded-2xl">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-muted-foreground mb-1">
           {icon}
           <span className="text-xs">{label}</span>
         </div>
-        <div className="text-xl font-bold">{value}</div>
+        <div className="text-xl font-semibold tracking-tight text-foreground">{value}</div>
       </CardContent>
     </Card>
   )

@@ -14,6 +14,7 @@ import {
   InvestigatorRank,
   MythosTip,
 } from '@/components/dashboard-widgets'
+import { HeroReportCard, HeroReportCardEmpty } from '@/components/hero-report-card'
 import type { SuggestedUser } from '@/components/dashboard-widgets'
 import { getProfileLimits, canUseFeature } from '@/lib/tier-limits'
 import type { PlayReport, Profile, ScenarioPreference } from '@/lib/types'
@@ -51,6 +52,25 @@ export default async function DashboardPage() {
     .from('play_reports')
     .select('scenario_name, scenario_author, created_at')
     .eq('user_id', user.id)
+
+  // Latest own report — used as the "hero" card at the top of the feed
+  const { data: heroReportData } = await supabase
+    .from('play_reports')
+    .select(`
+      *,
+      profile:profiles!play_reports_user_id_fkey(id, username, display_name, avatar_url),
+      participants:play_report_participants(*, profile:profiles(id, username, display_name, avatar_url)),
+      likes:likes(id)
+    `)
+    .eq('user_id', user.id)
+    .eq('is_mini', false)
+    .order('play_date_start', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const heroReport: PlayReport | null = heroReportData
+    ? ({ ...heroReportData, likes_count: heroReportData.likes?.length || 0 } as PlayReport)
+    : null
 
   const playedScenarios = new Set(userReports?.map(r => r.scenario_name) || [])
   const playedAuthors = new Set(userReports?.map(r => r.scenario_author).filter(Boolean) || [])
@@ -531,12 +551,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="-my-6">
+    <div className="-my-6 -mx-4 sm:-mx-6 lg:pr-[350px]">
       {/* Main Feed Area - X/Twitter-style 600px column */}
-      <div className="min-h-screen max-w-[600px] mx-auto border-x border-border/50">
+      <div className="min-h-screen max-w-[600px] mx-auto border-x border-border/40">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3">
-          <h1 className="text-xl font-bold">ホーム</h1>
+        <div className="sticky top-0 z-10 glass-strong border-b border-border/40 px-5 py-3.5">
+          <h1 className="text-xl font-bold tracking-tight">ホーム</h1>
         </div>
 
         {/* Welcome Header — greeting + quick stats */}
@@ -548,12 +568,19 @@ export default async function DashboardPage() {
           sanity={sanity}
         />
 
+        {/* Hero: latest own report as a prized card */}
+        {heroReport ? (
+          <HeroReportCard report={heroReport} />
+        ) : (
+          <HeroReportCardEmpty />
+        )}
+
         {/* Milestone celebration banner */}
         <MilestoneBanner totalReports={totalReports} />
 
         {/* Streamer Ads (for non-hiding users) - inline */}
         {streamerAds.length > 0 && (
-          <div className="p-4 border-b border-border/50">
+          <div className="p-4 border-b border-border/40">
             {streamerAds.slice(0, 1).map((ad) => (
               <StreamerAdCard
                 key={ad.report.id}
@@ -567,7 +594,7 @@ export default async function DashboardPage() {
 
         {/* Pro Feature: Matching Recommendations - compact inline */}
         {canUseMatching && (kpReports.length > 0 || interestedPlayers.length > 0) && (
-          <div className="p-4 border-b border-border/50">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">マッチング</h2>
               <XShareButton preferences={scenarioPreferences} size="sm" />
@@ -641,7 +668,7 @@ function RightSidebarContent({
   suggestedUsers: SuggestedUser[]
 }) {
   return (
-    <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/50 bg-background">
+    <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong">
       {/* Search */}
       <div className="relative mb-4">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -650,7 +677,7 @@ function RightSidebarContent({
         </svg>
         <input
           placeholder="検索"
-          className="w-full pl-10 pr-4 py-2.5 rounded-full bg-muted/50 border-0 focus:ring-1 focus:ring-primary text-sm"
+          className="w-full pl-10 pr-4 py-2.5 rounded-full glass border border-border/30 focus:ring-2 focus:ring-primary/30 focus:border-primary/40 outline-none text-sm transition-colors"
         />
       </div>
 

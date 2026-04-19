@@ -1,31 +1,29 @@
 'use server'
 
 import { stripe } from '@/lib/stripe'
-import { SUBSCRIPTION_PRODUCTS } from '@/lib/subscription-products'
 import { createClient } from '@/lib/supabase/server'
 
-export async function createCheckoutSession(productId: string, billingPeriod: 'monthly' | 'yearly' = 'monthly') {
+// Launch price: ¥980. Change to WALLET_REGULAR_PRICE_YEN = 1480 when promotion ends.
+const WALLET_LAUNCH_PRICE_YEN = 980
+
+export async function createCheckoutSession(_productId: string, _billingPeriod?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error('認証が必要です')
   }
 
-  // Get user profile
+  // Check if already purchased
   const { data: profile } = await supabase
     .from('profiles')
-    .select('stripe_customer_id, email:id')
+    .select('stripe_customer_id, tier')
     .eq('id', user.id)
     .single()
 
-  const product = SUBSCRIPTION_PRODUCTS.find(p => p.id === productId || p.tier === productId.replace('-monthly', '').replace('-yearly', ''))
-  
-  if (!product || product.tier === 'free') {
-    throw new Error('無効なプランです')
+  if (profile?.tier === 'pro' || profile?.tier === 'streamer') {
+    throw new Error('すでにウォレットを購入済みです')
   }
-
-  const priceInYen = billingPeriod === 'yearly' ? product.priceYearlyYen : product.priceMonthlyYen
 
   // Get or create Stripe customer
   let customerId = profile?.stripe_customer_id
@@ -39,14 +37,13 @@ export async function createCheckoutSession(productId: string, billingPeriod: 'm
     })
     customerId = customer.id
 
-    // Save customer ID to profile
     await supabase
       .from('profiles')
       .update({ stripe_customer_id: customerId })
       .eq('id', user.id)
   }
 
-  // Create checkout session
+  // One-time payment (buy-once wallet)
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     ui_mode: 'embedded',
@@ -56,28 +53,24 @@ export async function createCheckoutSession(productId: string, billingPeriod: 'm
         price_data: {
           currency: 'jpy',
           product_data: {
-            name: product.name,
-            description: product.description,
+            name: "R'lyeh Wallet",
+            description: '買い切り — すべての機能をずっと利用できます',
           },
-          unit_amount: priceInYen,
-          recurring: {
-            interval: billingPeriod === 'yearly' ? 'year' : 'month',
-          },
+          unit_amount: WALLET_LAUNCH_PRICE_YEN,
         },
         quantity: 1,
       },
     ],
-    mode: 'subscription',
-    subscription_data: {
+    mode: 'payment',
+    payment_intent_data: {
       metadata: {
         supabase_user_id: user.id,
-        tier: product.tier,
-        billing_period: billingPeriod,
+        tier: 'pro',
       },
     },
     metadata: {
       supabase_user_id: user.id,
-      tier: product.tier,
+      tier: 'pro',
     },
   })
 
@@ -87,7 +80,7 @@ export async function createCheckoutSession(productId: string, billingPeriod: 'm
 export async function createCustomerPortalSession() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error('認証が必要です')
   }
@@ -99,7 +92,7 @@ export async function createCustomerPortalSession() {
     .single()
 
   if (!profile?.stripe_customer_id) {
-    throw new Error('サブスクリプション情報がありません')
+    throw new Error('お支払い情報がありません')
   }
 
   const session = await stripe.billingPortal.sessions.create({
@@ -108,56 +101,4 @@ export async function createCustomerPortalSession() {
   })
 
   return session.url
-}
-
-export async function cancelSubscription() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error('認証が必要です')
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('stripe_subscription_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.stripe_subscription_id) {
-    throw new Error('サブスクリプションが見つかりません')
-  }
-
-  // Cancel at period end (user keeps access until end of billing period)
-  await stripe.subscriptions.update(profile.stripe_subscription_id, {
-    cancel_at_period_end: true,
-  })
-
-  return { success: true }
-}
-
-export async function resumeSubscription() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error('認証が必要です')
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('stripe_subscription_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.stripe_subscription_id) {
-    throw new Error('サブスクリプションが見つかりません')
-  }
-
-  // Resume subscription
-  await stripe.subscriptions.update(profile.stripe_subscription_id, {
-    cancel_at_period_end: false,
-  })
-
-  return { success: true }
 }

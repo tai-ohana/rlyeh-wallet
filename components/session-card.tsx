@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Heart, Calendar, Edit3, Loader2, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,6 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { PlayReport } from '@/lib/types'
 import { ReportTagDisplay } from '@/components/report-tag-input'
+import { fadeInUp, staggerContainer } from '@/lib/motion'
 
 interface SessionCardProps {
   report: PlayReport
@@ -99,26 +101,42 @@ export function SessionCard({
     }
   }
 
+  const prefersReducedMotion = useReducedMotion()
+
   return (
-    <div className="group break-inside-avoid mb-5">
+    <motion.div
+      className="group break-inside-avoid mb-6"
+      variants={fadeInUp}
+      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+    >
       <Link href={`/reports/${report.id}`} className="block">
         {/* Card Container */}
         <div className={cn(
-          "relative overflow-hidden rounded-xl",
-          "bg-card border",
+          "relative overflow-hidden rounded-3xl glass-sheen",
+          "bg-card/80 backdrop-blur-xl border",
           isFavorite
             ? "border-amber-400/60 dark:border-amber-500/40 ring-1 ring-amber-400/20"
             : report.is_mini
               ? "border-dashed border-border/60"
               : "border-border/40",
-          "transition-all duration-300 ease-out",
-          "hover:shadow-xl hover:shadow-black/[0.08] dark:hover:shadow-black/30",
-          "hover:border-border/60 hover:-translate-y-0.5"
+          "shadow-depth-1",
+          "transition-[transform,box-shadow,border-color] duration-300 ease-out",
+          "hover:shadow-depth-3 hover:border-primary/30"
         )}>
+          {/* Holofoil sheen — reveals on hover */}
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 group-hover:opacity-100",
+              "transition-opacity duration-500",
+              "bg-gradient-to-b from-primary/10 via-transparent to-transparent",
+            )}
+          />
           {/* Favorite star badge */}
           {isFavorite && (
-            <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/90 text-white text-[10px] font-medium shadow-sm">
-              <Star className="w-3 h-3 fill-current" />
+            <div className="absolute top-2 left-2 z-10 flex items-center justify-center w-6 h-6 rounded-full glass border border-amber-400/40 shadow-depth-1">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
             </div>
           )}
           {/* Image wrapper — only shown when image exists */}
@@ -169,7 +187,7 @@ export function SessionCard({
           <div className="p-4 space-y-2.5">
             {/* Mini badge */}
             {report.is_mini && (
-              <span className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-dashed border-border/60">
+              <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full glass border border-border/40 text-muted-foreground tracking-wide">
                 ミニ
               </span>
             )}
@@ -252,26 +270,34 @@ export function SessionCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 -mr-2 rounded-full gap-1.5 hover:bg-red-500/10"
+                className="h-7 px-2 -mr-2 rounded-full gap-1.5 hover:bg-rose-500/10"
                 onClick={handleLike}
                 disabled={isLiking}
               >
                 {isLiking ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Heart
-                    className={cn(
-                      'h-3.5 w-3.5 transition-all',
-                      hasLiked
-                        ? 'fill-red-500 text-red-500'
-                        : 'text-muted-foreground hover:text-red-400'
-                    )}
-                  />
+                  <motion.span
+                    key={hasLiked ? 'liked' : 'unliked'}
+                    initial={false}
+                    animate={hasLiked ? { scale: [1, 1.35, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    className="inline-flex"
+                  >
+                    <Heart
+                      className={cn(
+                        'h-3.5 w-3.5 transition-colors',
+                        hasLiked
+                          ? 'fill-rose-500 text-rose-500'
+                          : 'text-muted-foreground hover:text-rose-400'
+                      )}
+                    />
+                  </motion.span>
                 )}
                 {likesCount > 0 && (
                   <span className={cn(
-                    "text-xs",
-                    hasLiked ? "text-red-500" : "text-muted-foreground"
+                    "text-xs tabular-nums",
+                    hasLiked ? "text-rose-500" : "text-muted-foreground"
                   )}>
                     {likesCount}
                   </span>
@@ -281,7 +307,7 @@ export function SessionCard({
           </div>
         </div>
       </Link>
-    </div>
+    </motion.div>
   )
 }
 
@@ -294,13 +320,18 @@ export function SessionCardGrid({
   columns?: 3 | 4
 }) {
   return (
-    <div className={cn(
-      "gap-5",
-      columns === 4
-        ? "columns-2 md:columns-3 lg:columns-4"
-        : "columns-2 md:columns-3"
-    )}>
+    <motion.div
+      variants={staggerContainer(0.035)}
+      initial="hidden"
+      animate="visible"
+      className={cn(
+        "gap-6",
+        columns === 4
+          ? "columns-2 md:columns-3 lg:columns-4"
+          : "columns-2 md:columns-3"
+      )}
+    >
       {children}
-    </div>
+    </motion.div>
   )
 }

@@ -38,14 +38,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background bg-ambient">
       {/* Left Sidebar - Fixed position, overlaps content */}
-      <aside className="hidden sm:block fixed left-0 top-0 h-screen z-40 border-r border-border/50 bg-background">
+      <aside className="hidden sm:block fixed left-0 top-0 h-screen z-40 border-r border-border/40 glass-strong">
         <SidebarNav user={user} profile={profile} />
       </aside>
 
-      {/* Main Content - Full width, centered, sidebar overlaps */}
-      <main className="min-h-screen">
+      {/* Main Content - padded left to leave room for the fixed sidebar */}
+      <main
+        className="min-h-screen transition-[padding] duration-300 ease-out sm:pl-[var(--sidebar-w,260px)]"
+      >
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>
@@ -60,7 +62,7 @@ export default async function DashboardLayout({
 // Mobile bottom navigation
 function MobileNav({ profile }: { profile: any }) {
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border/50 z-50">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 glass-strong border-t border-border/40 z-50">
       <div className="flex items-center justify-around h-14">
         <a href="/dashboard" className="p-3">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
