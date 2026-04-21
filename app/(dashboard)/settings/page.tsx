@@ -418,16 +418,7 @@ export default function SettingsPage() {
             <Shield className="w-4 h-4" />
             プライバシー
           </TabsTrigger>
-          <TabsTrigger value="pro" className="gap-2">
-            <Crown className="w-4 h-4" />
-            Pro機能
-          </TabsTrigger>
-          {canUseFeature(profile, 'canUseCustomUrl') && (
-            <TabsTrigger value="streamer" className="gap-2">
-              <Video className="w-4 h-4" />
-              配信者設定
-            </TabsTrigger>
-          )}
+          {/* Pro機能・配信者設定タブは将来の有料プラン導入時に再表示 */}
         </TabsList>
 
         {/* Appearance Tab */}
