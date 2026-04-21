@@ -173,15 +173,17 @@ export default function NotificationsPage() {
         .limit(50)
 
       if (notifs) {
-        setNotifications(notifs)
-
-        // Mark all as read
+        // Mark all as read in DB
         const unreadIds = notifs.filter(n => !n.is_read).map(n => n.id)
         if (unreadIds.length > 0) {
           await supabase
             .from('notifications')
             .update({ is_read: true })
             .in('id', unreadIds)
+          // Update local state immediately so dots disappear without refresh
+          setNotifications(notifs.map(n => ({ ...n, is_read: true })))
+        } else {
+          setNotifications(notifs)
         }
 
         // Fetch pending friend requests

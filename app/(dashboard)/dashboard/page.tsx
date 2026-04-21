@@ -15,6 +15,7 @@ import {
   MythosTip,
 } from '@/components/dashboard-widgets'
 import { HeroReportCard, HeroReportCardEmpty } from '@/components/hero-report-card'
+import { WalletPurchaseCTA, WalletOwnerBadge } from '@/components/wallet-cta'
 import type { SuggestedUser } from '@/components/dashboard-widgets'
 import { getProfileLimits, canUseFeature } from '@/lib/tier-limits'
 import type { PlayReport, Profile, ScenarioPreference } from '@/lib/types'
@@ -632,6 +633,7 @@ export default async function DashboardPage() {
         measurementDay={currentDay}
         activeFriends={activeFriends}
         suggestedUsers={suggestedUsers}
+        tier={(profile?.tier as 'free' | 'pro' | 'streamer') || 'free'}
       />
     </div>
   )
@@ -652,6 +654,7 @@ function RightSidebarContent({
   measurementDay,
   activeFriends,
   suggestedUsers,
+  tier,
 }: {
   totalReports: number
   thisMonthReports: number
@@ -666,6 +669,7 @@ function RightSidebarContent({
   measurementDay: number
   activeFriends: { profile: any; lastActive: string; recentScenario?: string }[]
   suggestedUsers: SuggestedUser[]
+  tier: 'free' | 'pro' | 'streamer'
 }) {
   return (
     <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong">
@@ -680,6 +684,13 @@ function RightSidebarContent({
           className="w-full pl-10 pr-4 py-2.5 rounded-full glass border border-border/30 focus:ring-2 focus:ring-primary/30 focus:border-primary/40 outline-none text-sm transition-colors"
         />
       </div>
+
+      {/* Wallet status — owner badge or purchase CTA */}
+      {tier === 'free' ? (
+        <WalletPurchaseCTA />
+      ) : (
+        <WalletOwnerBadge tier={tier} />
+      )}
 
       {/* Investigator Rank — gamification card */}
       <InvestigatorRank

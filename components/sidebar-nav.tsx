@@ -213,6 +213,7 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={isActive && item.href === '/dashboard' ? () => window.scrollTo({ top: 0, behavior: 'smooth' }) : undefined}
                                 className={cn(
                                     'flex items-center gap-4 px-3 py-3 rounded-full',
                                     'group relative isolate',
@@ -225,7 +226,7 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
                                 {isActive && (
                                     <motion.span
                                         layoutId="sidebar-active-pill"
-                                        className="absolute inset-0 -z-10 rounded-full glass-strong shadow-depth-1"
+                                        className="absolute inset-0 -z-10 rounded-full bg-accent shadow-depth-1 ring-1 ring-primary/15"
                                         transition={springSoft}
                                     />
                                 )}
@@ -327,12 +328,14 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
                     </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" side="top" className="w-56 mb-2">
-                    <DropdownMenuItem asChild>
-                        <Link href="/pricing" className="cursor-pointer">
-                            <Crown className="w-4 h-4 mr-2" />
-                            料金プラン
-                        </Link>
-                    </DropdownMenuItem>
+                    {(!profile?.tier || profile.tier === 'free') && (
+                        <DropdownMenuItem asChild>
+                            <Link href="/pricing" className="cursor-pointer">
+                                <Crown className="w-4 h-4 mr-2" />
+                                ウォレットを購入
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                         <Link href="/settings" className="cursor-pointer">
                             <Settings className="w-4 h-4 mr-2" />

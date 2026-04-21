@@ -70,13 +70,13 @@ function NavItem({
           'relative flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-150',
           'hover:bg-accent active:scale-95',
           active
-            ? 'text-primary bg-primary/8'
+            ? 'text-primary bg-primary/15 ring-1 ring-primary/20'
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
         {children}
         {active && (
-          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
         )}
       </button>
     </Link>
@@ -166,7 +166,11 @@ export function DashboardNav({ user, profile }: DashboardNavProps) {
     <header className="border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 group">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 group"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
           <Image
             src="/logo.png"
             alt="R'lyeh Wallet"
@@ -250,12 +254,14 @@ export function DashboardNav({ user, profile }: DashboardNavProps) {
                   マイプロフィール
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/pricing" className="cursor-pointer">
-                  <Crown className="w-4 h-4 mr-2" />
-                  料金プラン
-                </Link>
-              </DropdownMenuItem>
+              {(!profile?.tier || profile.tier === 'free') && (
+                <DropdownMenuItem asChild>
+                  <Link href="/pricing" className="cursor-pointer">
+                    <Crown className="w-4 h-4 mr-2" />
+                    ウォレットを購入
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/settings" className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
