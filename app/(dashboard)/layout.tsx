@@ -44,11 +44,9 @@ export default async function DashboardLayout({
         <SidebarNav user={user} profile={profile} />
       </aside>
 
-      {/* Main Content - padded left to leave room for the fixed sidebar */}
-      <main
-        className="min-h-screen transition-[padding] duration-300 ease-out sm:pl-[var(--sidebar-w,260px)]"
-      >
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 pb-20 sm:pb-6">
+      {/* Main Content */}
+      <main className="min-h-screen transition-[padding] duration-300 ease-out sm:pl-[var(--sidebar-w,260px)]">
+        <div className="px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>
       </main>

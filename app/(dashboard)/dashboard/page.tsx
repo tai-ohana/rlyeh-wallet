@@ -552,9 +552,9 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="-my-6 -mx-4 sm:-mx-6 lg:pr-[350px]">
-      {/* Main Feed Area - X/Twitter-style 600px column */}
-      <div className="min-h-screen max-w-[600px] mx-auto border-x border-border/40">
+    <div className="-my-6 -mx-4 sm:-mx-6">
+      {/* Main Feed Area - X/Twitter-style 600px column, right margin for sidebar */}
+      <div className="min-h-screen max-w-[600px] mx-auto lg:mr-[350px] border-x border-border/40">
         {/* Header */}
         <div className="sticky top-0 z-10 glass-strong border-b border-border/40 px-5 py-3.5">
           <h1 className="text-xl font-bold tracking-tight">ホーム</h1>
@@ -672,7 +672,7 @@ function RightSidebarContent({
   tier: 'free' | 'pro' | 'streamer'
 }) {
   return (
-    <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong">
+    <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
       {/* Search */}
       <div className="relative mb-4">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
