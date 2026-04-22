@@ -62,13 +62,8 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
         }
     }, [])
 
-    // Save collapse state + expose width as a CSS var so main content can reserve space
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', String(isCollapsed))
-        document.documentElement.style.setProperty(
-            '--sidebar-w',
-            isCollapsed ? '68px' : '260px',
-        )
     }, [isCollapsed])
 
     useEffect(() => {

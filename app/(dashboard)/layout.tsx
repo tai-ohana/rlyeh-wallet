@@ -44,8 +44,8 @@ export default async function DashboardLayout({
         <SidebarNav user={user} profile={profile} />
       </aside>
 
-      {/* Main Content — left padding for sidebar, right padding for right sidebar on lg+ */}
-      <main className="min-h-screen transition-[padding] duration-300 ease-out sm:pl-[var(--sidebar-w,260px)] lg:pr-[350px]">
+      {/* Main Content — fixed left padding for collapsed sidebar width; expanded sidebar overlays */}
+      <main className="min-h-screen sm:pl-[68px] lg:pr-[350px]">
         <div className="px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>
