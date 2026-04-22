@@ -45,7 +45,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main Content — fixed left padding for collapsed sidebar width; expanded sidebar overlays */}
-      <main className="min-h-screen sm:pl-[68px] lg:pr-[350px]">
+      <main className="min-h-screen sm:pl-[68px] xl:pr-[350px]">
         <div className="px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>

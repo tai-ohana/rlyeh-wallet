@@ -672,7 +672,7 @@ function RightSidebarContent({
   tier: 'free' | 'pro' | 'streamer'
 }) {
   return (
-    <div className="hidden lg:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
+    <div className="hidden xl:block fixed right-0 top-0 w-[350px] h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
       {/* Search */}
       <div className="relative mb-4">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
