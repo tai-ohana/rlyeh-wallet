@@ -26,6 +26,8 @@ import {
   User,
   Copy,
   Check,
+  Tag,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { generateShareCode } from '@/lib/utils'
@@ -82,6 +84,8 @@ export default function NewReportPage() {
   const [xCopied, setXCopied] = useState(false)
   const [privacySetting, setPrivacySetting] = useState<'public' | 'followers' | 'private'>('followers')
   const [links, setLinks] = useState<ReportLink[]>([])
+  const [tagInputValue, setTagInputValue] = useState('')
+  const [pendingTags, setPendingTags] = useState<string[]>([])
   const [participants, setParticipants] = useState<Participant[]>([
     { username: '', user_id: null, role: 'PL', character_name: '', handout: '', result: '' }
   ])
@@ -265,6 +269,18 @@ export default function NewReportPage() {
           console.error('Links creation error:', linksError)
           throw linksError
         }
+      }
+
+      // Add tags (wallet users only)
+      if (pendingTags.length > 0 && (profile?.tier === 'pro' || profile?.tier === 'streamer')) {
+        const maxTags = 5
+        const tagsToInsert = pendingTags.slice(0, maxTags)
+        await supabase
+          .from('report_tags')
+          .insert(tagsToInsert.map(tag => ({
+            play_report_id: report.id,
+            tag_name: tag,
+          })))
       }
 
       // Success
@@ -662,6 +678,74 @@ export default function NewReportPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Tags — wallet users only */}
+          {(profile?.tier === 'pro' || profile?.tier === 'streamer') && (
+            <Card className="bg-card/50 border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  タグ
+                </CardTitle>
+                <CardDescription>卓名、何陣目、シナリオ略称などを追加（最大5個）</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInputValue}
+                      onChange={e => setTagInputValue(e.target.value)}
+                      onKeyDown={e => {
+                        if ((e.key === 'Enter' || e.key === ',') && tagInputValue.trim()) {
+                          e.preventDefault()
+                          const tag = tagInputValue.trim().replace(/,$/, '')
+                          if (tag && pendingTags.length < 5 && !pendingTags.includes(tag)) {
+                            setPendingTags([...pendingTags, tag])
+                          }
+                          setTagInputValue('')
+                        }
+                      }}
+                      placeholder="タグを入力してEnter"
+                      disabled={loading || pendingTags.length >= 5}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="bg-transparent"
+                      disabled={!tagInputValue.trim() || pendingTags.length >= 5}
+                      onClick={() => {
+                        const tag = tagInputValue.trim()
+                        if (tag && !pendingTags.includes(tag)) {
+                          setPendingTags([...pendingTags, tag])
+                          setTagInputValue('')
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {pendingTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {pendingTags.map(tag => (
+                        <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-accent border border-border/40">
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => setPendingTags(pendingTags.filter(t => t !== tag))}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Privacy */}
           <Card className="bg-card/50 border-border/50">

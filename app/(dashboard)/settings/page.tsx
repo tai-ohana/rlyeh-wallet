@@ -803,8 +803,8 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Pro Features Tab */}
-        <TabsContent value="pro" className="space-y-6">
+        {/* Pro Features Tab — 将来の有料プランで再導入予定 */}
+        {false && <TabsContent value="pro" className="space-y-6">
           {canUseFeature(profile, 'canUseCustomTags') ? (
             <>
               <Card className="bg-card/50 border-border/50">
@@ -920,10 +920,10 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </TabsContent>}
 
-        {/* Streamer Features Tab */}
-        {canUseFeature(profile, 'canUseCustomUrl') && (
+        {/* Streamer Features Tab — 将来の配信者プランで再導入予定 */}
+        {false && canUseFeature(profile, 'canUseCustomUrl') && (
           <TabsContent value="streamer" className="space-y-6">
             <Card className="bg-card/50 border-border/50">
               <CardHeader>
@@ -1119,8 +1119,7 @@ export default function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-        )}
+          </TabsContent>)}
       </Tabs>
     </div>
   )
