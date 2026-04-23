@@ -38,18 +38,24 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background bg-ambient">
+    <div className="min-h-screen bg-background bg-ambient flex">
+      {/* Left sidebar spacer — keeps content from going under the fixed sidebar */}
+      <div className="hidden sm:block w-[68px] shrink-0" />
+
       {/* Left Sidebar - Fixed position, overlaps content */}
       <aside className="hidden sm:block fixed left-0 top-0 h-screen z-40 border-r border-border/40 glass-strong">
         <SidebarNav user={user} profile={profile} />
       </aside>
 
-      {/* Main Content — fixed left padding for collapsed sidebar width; expanded sidebar overlays */}
-      <main className="min-h-screen sm:pl-[68px] xl:pr-[350px]">
+      {/* Main Content */}
+      <main className="flex-1 min-w-0 min-h-screen">
         <div className="px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>
       </main>
+
+      {/* Right sidebar spacer — reserves space for the fixed right sidebar on xl */}
+      <div className="hidden xl:block w-[350px] shrink-0" />
 
       {/* Mobile Bottom Nav */}
       <MobileNav profile={profile} />
