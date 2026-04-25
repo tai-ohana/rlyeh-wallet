@@ -54,9 +54,6 @@ export default async function DashboardLayout({
         </div>
       </main>
 
-      {/* Right sidebar spacer — reserves space for the fixed right sidebar on 1440px+ */}
-      <div className="hidden min-[1440px]:block w-[350px] shrink-0" />
-
       {/* Mobile Bottom Nav */}
       <MobileNav profile={profile} />
     </div>
