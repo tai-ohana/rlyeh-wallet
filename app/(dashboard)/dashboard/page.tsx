@@ -552,9 +552,9 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="-my-6 flex items-start min-h-screen">
-      {/* Feed column — centered below 1160px, left-aligned above (sidebar takes right) */}
-      <div className="flex-1 min-w-0 max-w-[600px] mx-auto min-[1160px]:mx-0 min-h-screen border-x border-border/40">
+    <div className="-my-6 grid grid-cols-1 min-[1160px]:grid-cols-[1fr_360px] min-h-screen items-start">
+      {/* Feed column — always centered in its grid cell */}
+      <div className="w-full max-w-[600px] mx-auto min-h-screen border-x border-border/40">
         {/* Header */}
         <div className="sticky top-0 z-10 glass-strong border-b border-border/40 px-5 py-3.5">
           <h1 className="text-xl font-bold tracking-tight">ホーム</h1>
@@ -672,7 +672,7 @@ function RightSidebarContent({
   tier: 'free' | 'pro' | 'streamer'
 }) {
   return (
-    <aside className="hidden min-[1160px]:block w-[360px] shrink-0 ml-auto self-start sticky top-0 h-screen overflow-y-auto pl-8 pr-4 py-6 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
+    <aside className="hidden min-[1160px]:block sticky top-0 h-screen overflow-y-auto pl-8 pr-4 py-6 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
       {/* Search */}
       <div className="relative mb-4">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -64,6 +64,7 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
 
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', String(isCollapsed))
+        document.documentElement.style.setProperty('--sidebar-w', isCollapsed ? '68px' : '260px')
     }, [isCollapsed])
 
     useEffect(() => {

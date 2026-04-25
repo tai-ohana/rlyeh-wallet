@@ -290,7 +290,7 @@ function SearchPageContent() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 transition-[padding] duration-300 ease-out" style={{ paddingLeft: 'calc(var(--sidebar-w, 68px) - 68px)' }}>
       {/* Header — visionOS hero */}
       <div className="rounded-3xl glass glass-sheen shadow-depth-1 px-6 py-5">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">検索</h1>

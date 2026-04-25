@@ -339,7 +339,7 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 transition-[padding] duration-300 ease-out" style={{ paddingLeft: 'calc(var(--sidebar-w, 68px) - 68px)' }}>
       {/* Header — visionOS hero */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl glass glass-sheen shadow-depth-1 px-6 py-5">
         <div>
