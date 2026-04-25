@@ -17,6 +17,7 @@ import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
 import { TrpgPreferenceDisplay } from '@/components/trpg-preference-display'
 import { InvestigatorRank } from '@/components/dashboard-widgets'
+import { SessionCard } from '@/components/session-card'
 
 interface UserStats {
   totalSessions: number
@@ -165,7 +166,7 @@ export default function UserProfilePage() {
     totalHours: 0,
     survivalRate: 0,
   })
-  const [statsTab, setStatsTab] = useState<'stats' | 'profile'>('stats')
+  const [statsTab, setStatsTab] = useState<'stats' | 'profile'>('stats') // kept for compat but replaced by Tabs below
   const [favoriteReports, setFavoriteReports] = useState<PlayReport[]>([])
   const [wantToPlayScenarios, setWantToPlayScenarios] = useState<ScenarioPreference[]>([])
 
@@ -682,59 +683,62 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Stats / Profile Tab Switcher */}
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setStatsTab('stats')}
-            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${statsTab === 'stats'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-              }`}
-          >
-            統計
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatsTab('profile')}
-            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${statsTab === 'profile'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-              }`}
-          >
-            プロフィール
-          </button>
-        </div>
+      {/* 3-tab section: ウォレット / 統計 / プロフィール */}
+      <Tabs defaultValue="wallet" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="wallet">ウォレット</TabsTrigger>
+          <TabsTrigger value="stats">統計</TabsTrigger>
+          <TabsTrigger value="profile">プロフィール</TabsTrigger>
+        </TabsList>
 
-        {statsTab === 'stats' ? (
-          <div className="space-y-4">
-            <InvestigatorRank
-              totalReports={stats.totalSessions}
-              survivalRate={stats.survivalRate}
-              uniqueScenarios={stats.uniqueScenarios}
-            />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <StatCard icon={<BookOpen className="w-4 h-4" />} label="総セッション" value={stats.totalSessions} />
-              <StatCard icon={<Users className="w-4 h-4" />} label="KP回数" value={stats.asKP} />
-              <StatCard icon={<Trophy className="w-4 h-4" />} label="PL回数" value={stats.asPL} />
-              <StatCard icon={<BookOpen className="w-4 h-4" />} label="シナリオ数" value={stats.uniqueScenarios} />
-              <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
-              <StatCard icon={<Percent className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
+        <TabsContent value="wallet" className="space-y-4">
+          {reports.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/50 glass px-6 py-12 text-center space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">セッション記録がありません</p>
+              {isOwnProfile && (
+                <p className="text-xs text-muted-foreground/60">
+                  <a href="/reports/new" className="underline underline-offset-2 hover:text-foreground transition-colors">最初の記録を作成する</a>
+                </p>
+              )}
             </div>
-          </div>
-        ) : (
-          <TrpgPreferenceDisplay profile={profile} favoriteReports={favoriteReports} wantToPlayScenarios={wantToPlayScenarios} />
-        )}
-      </div>
+          ) : (
+            reports
+              .filter(r => isOwnProfile || r.visibility === 'public' || (r.visibility === 'followers' && isFriend))
+              .map(report => (
+                <SessionCard
+                  key={report.id}
+                  report={report}
+                  showAuthor={false}
+                  showEdit={isOwnProfile}
+                />
+              ))
+          )}
+        </TabsContent>
 
-      {/* Achievements placeholder */}
-      {statsTab === 'stats' && (
-        <div className="mt-6 rounded-2xl border border-dashed border-border/50 glass px-6 py-8 text-center space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">アチーブメント</p>
-          <p className="text-xs text-muted-foreground/60">Coming soon — セッション数・生還・KP達成など</p>
-        </div>
-      )}
+        <TabsContent value="stats" className="space-y-4">
+          <InvestigatorRank
+            totalReports={stats.totalSessions}
+            survivalRate={stats.survivalRate}
+            uniqueScenarios={stats.uniqueScenarios}
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <StatCard icon={<BookOpen className="w-4 h-4" />} label="総セッション" value={stats.totalSessions} />
+            <StatCard icon={<Users className="w-4 h-4" />} label="KP回数" value={stats.asKP} />
+            <StatCard icon={<Trophy className="w-4 h-4" />} label="PL回数" value={stats.asPL} />
+            <StatCard icon={<BookOpen className="w-4 h-4" />} label="シナリオ数" value={stats.uniqueScenarios} />
+            <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
+            <StatCard icon={<Percent className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
+          </div>
+          <div className="rounded-2xl border border-dashed border-border/50 glass px-6 py-8 text-center space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">アチーブメント</p>
+            <p className="text-xs text-muted-foreground/60">Coming soon — セッション数・生還・KP達成など</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profile">
+          <TrpgPreferenceDisplay profile={profile} favoriteReports={favoriteReports} wantToPlayScenarios={wantToPlayScenarios} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
