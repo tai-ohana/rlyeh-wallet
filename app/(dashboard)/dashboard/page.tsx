@@ -552,10 +552,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="-my-6 -mx-4 sm:-mx-6 flex min-h-screen">
-      {/* Main Feed Area - flex-1, feed centered inside */}
-      <div className="flex-1 min-w-0">
-      <div className="min-h-screen max-w-[600px] mx-auto border-x border-border/40">
+    <div className="-my-6 min-h-screen">
+      {/* Feed — viewport absolute center: left = 50vw - 300px */}
+      <div
+        className="max-w-[600px] min-h-screen border-x border-border/40"
+        style={{ width: '600px', marginLeft: 'max(0px, calc(50vw - 392px))' }}
+      >
         {/* Header */}
         <div className="sticky top-0 z-10 glass-strong border-b border-border/40 px-5 py-3.5">
           <h1 className="text-xl font-bold tracking-tight">ホーム</h1>
@@ -618,9 +620,8 @@ export default async function DashboardPage() {
           userId={user.id}
         />
       </div>
-      </div>
 
-      {/* Right Sidebar — inline, sticky to viewport, at screen right edge */}
+      {/* Right sidebar — sticky Twitter-style, shows at 1160px+ */}
       <RightSidebarContent
         totalReports={totalReports}
         thisMonthReports={thisMonthReports}
@@ -674,7 +675,10 @@ function RightSidebarContent({
   tier: 'free' | 'pro' | 'streamer'
 }) {
   return (
-    <div className="hidden lg:flex flex-col w-[350px] shrink-0 sticky top-0 h-screen overflow-y-auto px-4 py-4 border-l border-border/40 glass-strong" style={{ scrollbarWidth: 'thin' }}>
+    <aside
+      className="hidden xl:block fixed top-0 h-screen overflow-y-auto pl-6 pr-4 py-6 border-l border-border/40 glass-strong"
+      style={{ left: 'calc(50vw + 316px)', width: '300px', scrollbarWidth: 'thin' }}
+    >
       {/* Search */}
       <div className="relative mb-4">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -727,7 +731,7 @@ function RightSidebarContent({
         </div>
         <p>© 2025 R&apos;lyeh Wallet</p>
       </div>
-    </div>
+    </aside>
   )
 }
 
