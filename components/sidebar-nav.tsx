@@ -148,9 +148,17 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
     ]
 
     return (
+        <>
+            {/* Backdrop — only when sidebar is expanded */}
+            {!isCollapsed && (
+                <div
+                    className="fixed inset-0 bg-black/20 z-30 hidden sm:block"
+                    onClick={() => setIsCollapsed(true)}
+                />
+            )}
         <nav
             className={cn(
-                'flex flex-col h-full py-2 transition-all duration-300 ease-out overflow-hidden',
+                'flex flex-col h-full py-2 transition-all duration-300 ease-out overflow-hidden relative z-40',
                 isCollapsed ? 'w-[68px] px-2' : 'w-[260px] px-3'
             )}
         >
@@ -346,5 +354,6 @@ export function SidebarNav({ user, profile }: SidebarNavProps) {
                 </DropdownMenuContent>
             </DropdownMenu>
         </nav>
+        </>
     )
 }

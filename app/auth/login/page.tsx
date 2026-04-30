@@ -188,9 +188,9 @@ export default function LoginPage() {
 
             <p className="text-xs text-center text-muted-foreground pt-2">
               ログインすることで、
-              <Link href="/terms" className="text-primary hover:underline">利用規約</Link>
+              <Link href="/legal/terms" className="text-primary hover:underline">利用規約</Link>
               と
-              <Link href="/privacy" className="text-primary hover:underline">プライバシーポリシー</Link>
+              <Link href="/legal/privacy" className="text-primary hover:underline">プライバシーポリシー</Link>
               に同意したものとみなされます。
             </p>
           </CardContent>

@@ -682,13 +682,13 @@ function BetaFooter() {
                     </div>
                     <div className="flex items-center gap-6 text-sm" style={{ color: C.textDim }}>
                         <Link
-                            href="/terms"
+                            href="/legal/terms"
                             className="transition-colors hover:opacity-80"
                         >
                             利用規約
                         </Link>
                         <Link
-                            href="/privacy"
+                            href="/legal/privacy"
                             className="transition-colors hover:opacity-80"
                         >
                             プライバシーポリシー

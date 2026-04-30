@@ -81,13 +81,13 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-6 text-sm text-lp-400">
               <Link
-                href="/terms"
+                href="/legal/terms"
                 className="hover:text-lp-900 transition-colors"
               >
                 利用規約
               </Link>
               <Link
-                href="/privacy"
+                href="/legal/privacy"
                 className="hover:text-lp-900 transition-colors"
               >
                 プライバシーポリシー

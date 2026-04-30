@@ -47,8 +47,8 @@ export default async function DashboardLayout({
         <SidebarNav user={user} profile={profile} />
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0 min-h-screen">
+      {/* Main Content — fixed 68px left padding for sidebar icon strip; sidebar expands as overlay */}
+      <main className="min-h-screen sm:pl-[68px]">
         <div className="px-4 sm:px-6 py-6 pb-20 sm:pb-6">
           {children}
         </div>

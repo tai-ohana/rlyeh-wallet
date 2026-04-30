@@ -11,10 +11,36 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const _notoSansJP = Noto_Sans_JP({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "R'lyeh Wallet - TRPGセッション記録管理",
+  title: {
+    default: "R'lyeh Wallet - TRPGセッション記録管理",
+    template: "%s | R'lyeh Wallet",
+  },
   description: 'クトゥルフ神話TRPGのセッション履歴を記録・管理・共有できるプラットフォーム',
-  generator: 'v0.app',
-  keywords: ['TRPG', 'クトゥルフ神話', 'CoC', 'セッション記録', 'ルルイエウォレット'],
+  keywords: ['TRPG', 'クトゥルフ神話', 'CoC', 'セッション記録', 'ルルイエウォレット', 'CoC7版', 'キャラクターシート'],
+  authors: [{ name: "R'lyeh Wallet" }],
+  metadataBase: new URL('https://rlyehwallet.com'),
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    url: 'https://rlyehwallet.com',
+    siteName: "R'lyeh Wallet",
+    title: "R'lyeh Wallet - TRPGセッション記録管理",
+    description: 'クトゥルフ神話TRPGのセッション履歴を記録・管理・共有できるプラットフォーム',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: "R'lyeh Wallet",
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "R'lyeh Wallet - TRPGセッション記録管理",
+    description: 'クトゥルフ神話TRPGのセッション履歴を記録・管理・共有できるプラットフォーム',
+    images: ['/og-image.png'],
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
