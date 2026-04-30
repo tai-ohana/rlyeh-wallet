@@ -727,7 +727,7 @@ function RightSidebarContent({
         </div>
         <p>© 2025 R&apos;lyeh Wallet</p>
       </div>
-    </aside>
+    </div>
   )
 }
 
