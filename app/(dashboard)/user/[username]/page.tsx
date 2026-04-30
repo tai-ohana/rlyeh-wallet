@@ -17,6 +17,7 @@ import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
 import { TrpgPreferenceDisplay } from '@/components/trpg-preference-display'
 import { InvestigatorRank } from '@/components/dashboard-widgets'
+import { SessionCard, SessionCardGrid } from '@/components/session-card'
 
 interface UserStats {
   totalSessions: number
@@ -165,7 +166,7 @@ export default function UserProfilePage() {
     totalHours: 0,
     survivalRate: 0,
   })
-  const [statsTab, setStatsTab] = useState<'stats' | 'profile'>('stats')
+  const [statsTab, setStatsTab] = useState<'wallet' | 'stats' | 'profile'>('wallet')
   const [favoriteReports, setFavoriteReports] = useState<PlayReport[]>([])
   const [wantToPlayScenarios, setWantToPlayScenarios] = useState<ScenarioPreference[]>([])
 
@@ -682,9 +683,19 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Stats / Profile Tab Switcher */}
+      {/* Wallet / Stats / Profile Tab Switcher */}
       <div className="space-y-4">
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setStatsTab('wallet')}
+            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${statsTab === 'wallet'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+              }`}
+          >
+            ウォレット
+          </button>
           <button
             type="button"
             onClick={() => setStatsTab('stats')}
@@ -707,7 +718,28 @@ export default function UserProfilePage() {
           </button>
         </div>
 
-        {statsTab === 'stats' ? (
+        {statsTab === 'wallet' && (
+          <div>
+            {reports.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border/50 glass px-6 py-12 text-center">
+                <p className="text-sm text-muted-foreground">セッション記録がありません</p>
+              </div>
+            ) : (
+              <SessionCardGrid columns={3}>
+                {reports.map((report) => (
+                  <SessionCard
+                    key={report.id}
+                    report={report}
+                    showAuthor={false}
+                    showEdit={isOwnProfile}
+                  />
+                ))}
+              </SessionCardGrid>
+            )}
+          </div>
+        )}
+
+        {statsTab === 'stats' && (
           <div className="space-y-4">
             <InvestigatorRank
               totalReports={stats.totalSessions}
@@ -722,19 +754,17 @@ export default function UserProfilePage() {
               <StatCard icon={<Clock className="w-4 h-4" />} label="総プレイ時間" value={`${stats.totalHours.toFixed(0)}h`} />
               <StatCard icon={<Percent className="w-4 h-4" />} label="生還率" value={`${stats.survivalRate}%`} />
             </div>
+            <div className="mt-6 rounded-2xl border border-dashed border-border/50 glass px-6 py-8 text-center space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">アチーブメント</p>
+              <p className="text-xs text-muted-foreground/60">Coming soon — セッション数・生還・KP達成など</p>
+            </div>
           </div>
-        ) : (
+        )}
+
+        {statsTab === 'profile' && (
           <TrpgPreferenceDisplay profile={profile} favoriteReports={favoriteReports} wantToPlayScenarios={wantToPlayScenarios} />
         )}
       </div>
-
-      {/* Achievements placeholder */}
-      {statsTab === 'stats' && (
-        <div className="mt-6 rounded-2xl border border-dashed border-border/50 glass px-6 py-8 text-center space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">アチーブメント</p>
-          <p className="text-xs text-muted-foreground/60">Coming soon — セッション数・生還・KP達成など</p>
-        </div>
-      )}
     </div>
   )
 }
