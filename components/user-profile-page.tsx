@@ -146,7 +146,7 @@ function FriendsDialog({
   )
 }
 
-export default function UserProfilePage() {
+export function UserProfilePageClient() {
   const params = useParams()
   const username = params.username as string
   const router = useRouter()
