@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -11,13 +11,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2 } from 'lucide-react'
+import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Download, ImageDown } from 'lucide-react'
 import type { Profile, PlayReport, ScenarioPreference } from '@/lib/types'
 import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
 import { TrpgPreferenceDisplay } from '@/components/trpg-preference-display'
 import { InvestigatorRank } from '@/components/dashboard-widgets'
 import { SessionCard, SessionCardGrid } from '@/components/session-card'
+import { ProfileCardExport } from '@/components/profile-card-export'
+import { exportProfileCardAsPng } from '@/lib/export-card'
 
 interface UserStats {
   totalSessions: number
@@ -169,6 +171,27 @@ export default function UserProfilePage() {
   const [statsTab, setStatsTab] = useState<'wallet' | 'stats' | 'profile'>('wallet')
   const [favoriteReports, setFavoriteReports] = useState<PlayReport[]>([])
   const [wantToPlayScenarios, setWantToPlayScenarios] = useState<ScenarioPreference[]>([])
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  async function handleExportCard() {
+    if (!cardRef.current || !profile) return
+    setExporting(true)
+    try {
+      await exportProfileCardAsPng(
+        cardRef.current,
+        `rlyeh-profile-${profile.username}.png`
+      )
+      toast.success('プロフィールカードを保存しました')
+    } catch (e) {
+      console.error('[export-card]', e)
+      const msg = e instanceof Error ? e.message : String(e)
+      toast.error(`画像の生成に失敗しました: ${msg}`)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -626,11 +649,22 @@ export default function UserProfilePage() {
             />
 
             {isOwnProfile ? (
-              <Link href="/settings">
-                <Button variant="outline" size="sm" className="bg-transparent">
-                  プロフィールを編集
+              <>
+                <Link href="/settings">
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    プロフィールを編集
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExportOpen(true)}
+                  className="gap-2 bg-transparent"
+                >
+                  <ImageDown className="w-4 h-4" />
+                  カード出力
                 </Button>
-              </Link>
+              </>
             ) : (
               <>
                 {friendRequestStatus === 'none' && (
@@ -765,6 +799,73 @@ export default function UserProfilePage() {
           <TrpgPreferenceDisplay profile={profile} favoriteReports={favoriteReports} wantToPlayScenarios={wantToPlayScenarios} />
         )}
       </div>
+
+      {/* Profile card export dialog */}
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>プロフィールカードを出力</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              現在のプロフィール情報をPNG画像として書き出します。SNSでのシェアにご利用ください。
+            </p>
+            {/* Preview — scaled down */}
+            <div className="relative w-full overflow-hidden rounded-xl border border-border/40 bg-muted/30">
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '1080 / 1350',
+                  position: 'relative',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transform: 'scale(var(--card-scale, 0.5))',
+                    transformOrigin: 'top left',
+                    width: 1080,
+                  }}
+                  ref={(el) => {
+                    if (!el) return
+                    const parent = el.parentElement
+                    if (!parent) return
+                    const ro = new ResizeObserver(() => {
+                      const scale = parent.clientWidth / 1080
+                      el.style.setProperty('--card-scale', String(scale))
+                    })
+                    ro.observe(parent)
+                    el.style.setProperty('--card-scale', String(parent.clientWidth / 1080))
+                  }}
+                >
+                  <ProfileCardExport
+                    ref={cardRef}
+                    profile={profile}
+                    stats={stats}
+                    favoriteReports={favoriteReports}
+                    wantToPlayScenarios={wantToPlayScenarios}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setExportOpen(false)} disabled={exporting}>
+                キャンセル
+              </Button>
+              <Button onClick={handleExportCard} disabled={exporting} className="gap-2">
+                {exporting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                {exporting ? '生成中...' : 'PNGをダウンロード'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

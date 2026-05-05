@@ -44,7 +44,7 @@ export function TrpgPreferenceDisplay({ profile, favoriteReports, wantToPlayScen
         </Card>
       )}
 
-      {/* Favorite Scenarios — visually prominent */}
+      {/* Favorite Scenarios — masonry layout preserving native aspect ratio */}
       {favoriteReports.length > 0 && (
         <div className="md:col-span-2">
           <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5">
@@ -53,28 +53,31 @@ export function TrpgPreferenceDisplay({ profile, favoriteReports, wantToPlayScen
             </svg>
             好きなシナリオ
           </p>
-          <div className={`grid gap-3 ${favoriteReports.length === 1 ? 'grid-cols-1 max-w-xs' :
-            favoriteReports.length === 2 ? 'grid-cols-2 max-w-lg' :
-              'grid-cols-2 sm:grid-cols-3'
+          <div className={`gap-3 ${favoriteReports.length === 1
+            ? 'max-w-xs'
+            : favoriteReports.length === 2
+              ? 'columns-2 max-w-lg'
+              : 'columns-2 sm:columns-3'
             }`}>
             {favoriteReports.map((report) => (
               <Link
                 key={report.id}
                 href={`/reports/${report.id}`}
-                className="group block"
+                className="group block mb-3 break-inside-avoid"
               >
                 <div className="relative overflow-hidden rounded-xl border border-border/40 transition-all duration-300 hover:shadow-lg hover:shadow-black/[0.08] dark:hover:shadow-black/30 hover:-translate-y-0.5 hover:border-border/60">
                   {report.cover_image_url ? (
-                    <div className="relative aspect-[3/4] bg-muted/30">
+                    <div className="relative bg-muted/30">
                       <Image
                         src={report.cover_image_url}
                         alt={report.scenario_name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        width={600}
+                        height={800}
+                        className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
                       {/* Gradient overlay for text */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <p className="text-sm font-semibold text-white leading-snug line-clamp-2 drop-shadow-md">
                           {report.scenario_name}
