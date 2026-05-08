@@ -542,28 +542,17 @@ export default function WalletPage() {
       {viewMode !== 'timeline' && (openFolder ? (
         // Inside folder — show reports only
         filteredReports.length > 0 ? (
-          viewMode === 'grid' ? (
-            <SessionCardGrid columns={4}>
-              {filteredReports.map(report => (
-                <SessionCard
-                  key={report.id}
-                  report={report}
-                  showEdit
-                />
-              ))}
-            </SessionCardGrid>
-          ) : (
-            <div className="space-y-3">
-              {filteredReports.map(report => (
-                <SessionCard
-                  key={report.id}
-                  report={report}
-                  compact
-                  showEdit
-                />
-              ))}
-            </div>
-          )
+          // フォルダ内は常にコンパクト表示
+          <div className="space-y-2">
+            {filteredReports.map(report => (
+              <SessionCard
+                key={report.id}
+                report={report}
+                compact
+                showEdit
+              />
+            ))}
+          </div>
         ) : (
           <EmptyState hasFilters={!!searchQuery || filterYear !== 'all' || filterResult !== 'all'} />
         )
