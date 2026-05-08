@@ -200,6 +200,15 @@ export function DashboardNav({ user, profile }: DashboardNavProps) {
             <CardStackIcon className="w-5 h-5" />
           </NavItem>
 
+          {/* Investigators */}
+          <NavItem href="/investigators" active={pathname.startsWith('/investigators')} label="探索者">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="4" y="3" width="10" height="14" rx="2" />
+              <path d="M8 7h2M8 10h4" />
+              <path d="M14 7h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-1" />
+            </svg>
+          </NavItem>
+
           {/* Search */}
           <NavItem href="/search" active={pathname.startsWith('/search')} label="検索">
             <Search className="w-5 h-5" />

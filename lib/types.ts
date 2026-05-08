@@ -1,5 +1,58 @@
 // R'lyeh Wallet Types
 
+// ─── Investigator (探索者) ────────────────────────────────────────
+export type InvestigatorStatus = 'active' | 'lost' | 'retired'
+
+export interface Investigator {
+  id: string
+  user_id: string
+  name: string
+  occupation: string | null
+  age: string | null
+  avatar_url: string | null
+  backstory: string | null
+  status: InvestigatorStatus
+  tags: string[]
+  san_current: number | null
+  san_max: number | null
+  hp_max: number | null
+  mp_max: number | null
+  cocofolia_data: Record<string, unknown> | null
+  display_order: number
+  created_at: string
+  updated_at: string
+  // Joined
+  sessions?: InvestigatorSession[]
+  session_count?: number
+}
+
+export interface InvestigatorSession {
+  id: string
+  investigator_id: string
+  play_report_id: string
+  result: 'survive' | 'lost' | 'other' | null
+  notes: string | null
+  created_at: string
+  // Joined
+  play_report?: {
+    id: string
+    scenario_name: string
+    play_date_start: string
+    cover_image_url: string | null
+  }
+}
+
+// Cocofolia JSON paste format
+export interface CocofolicaCharacter {
+  kind: 'character'
+  name: string
+  initiative?: number
+  imageUrl?: string
+  status?: Array<{ label: string; value: number; max?: number }>
+  params?: Array<{ label: string; value: number }>
+  commands?: string
+}
+
 export type UserTier = 'free' | 'pro' | 'streamer'
 
 export interface Profile {
