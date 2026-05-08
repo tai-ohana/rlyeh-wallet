@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Download, ImageDown } from 'lucide-react'
+import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Download, ImageDown, ChevronDown, ChevronRight } from 'lucide-react'
 import type { Profile, PlayReport, ScenarioPreference } from '@/lib/types'
 import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
@@ -753,24 +753,7 @@ export function UserProfilePageClient() {
         </div>
 
         {statsTab === 'wallet' && (
-          <div>
-            {reports.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border/50 glass px-6 py-12 text-center">
-                <p className="text-sm text-muted-foreground">セッション記録がありません</p>
-              </div>
-            ) : (
-              <SessionCardGrid columns={3}>
-                {reports.map((report) => (
-                  <SessionCard
-                    key={report.id}
-                    report={report}
-                    showAuthor={false}
-                    showEdit={isOwnProfile}
-                  />
-                ))}
-              </SessionCardGrid>
-            )}
-          </div>
+          <WalletTab reports={reports} isOwnProfile={isOwnProfile} />
         )}
 
         {statsTab === 'stats' && (
@@ -866,6 +849,62 @@ export function UserProfilePageClient() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+// ─── Wallet tab: ミニカードを折りたたみフォルダ化 ────────────────────────────
+function WalletTab({ reports, isOwnProfile }: { reports: PlayReport[]; isOwnProfile: boolean }) {
+  const [miniOpen, setMiniOpen] = useState(false)
+
+  if (reports.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/50 glass px-6 py-12 text-center">
+        <p className="text-sm text-muted-foreground">セッション記録がありません</p>
+      </div>
+    )
+  }
+
+  const normalReports = reports.filter(r => !r.is_mini)
+  const miniReports   = reports.filter(r => r.is_mini)
+
+  return (
+    <div className="space-y-4">
+      {/* 通常カード */}
+      {normalReports.length > 0 && (
+        <SessionCardGrid columns={3}>
+          {normalReports.map(report => (
+            <SessionCard key={report.id} report={report} showAuthor={false} showEdit={isOwnProfile} />
+          ))}
+        </SessionCardGrid>
+      )}
+
+      {/* ミニカード折りたたみフォルダ */}
+      {miniReports.length > 0 && (
+        <div className="rounded-2xl border border-border/50 overflow-hidden">
+          {/* フォルダヘッダー */}
+          <button
+            onClick={() => setMiniOpen(v => !v)}
+            className="w-full flex items-center gap-2 px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+          >
+            {miniOpen
+              ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+              : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            }
+            <span className="text-sm font-medium">ミニカード</span>
+            <span className="text-xs text-muted-foreground ml-1">{miniReports.length}件</span>
+          </button>
+
+          {/* カード一覧（展開時のみ） */}
+          {miniOpen && (
+            <div className="p-3 space-y-2">
+              {miniReports.map(report => (
+                <SessionCard key={report.id} report={report} compact showAuthor={false} showEdit={isOwnProfile} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
