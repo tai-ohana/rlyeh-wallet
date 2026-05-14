@@ -79,10 +79,18 @@ CREATE TRIGGER investigators_updated_at
 ALTER TABLE public.investigators ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investigator_sessions ENABLE ROW LEVEL SECURITY;
 
--- investigators: 自分のものを全操作、他人のものは閲覧のみ
-CREATE POLICY "investigators_select_own" ON public.investigators
-  FOR SELECT USING (auth.uid() = user_id);
+-- 既存ポリシーを削除してから再作成（冪等実行のため）
+DROP POLICY IF EXISTS "investigators_select_own"    ON public.investigators;
+DROP POLICY IF EXISTS "investigators_select_public" ON public.investigators;
+DROP POLICY IF EXISTS "investigators_insert_own"    ON public.investigators;
+DROP POLICY IF EXISTS "investigators_update_own"    ON public.investigators;
+DROP POLICY IF EXISTS "investigators_delete_own"    ON public.investigators;
+DROP POLICY IF EXISTS "inv_sessions_select"         ON public.investigator_sessions;
+DROP POLICY IF EXISTS "inv_sessions_insert"         ON public.investigator_sessions;
+DROP POLICY IF EXISTS "inv_sessions_update"         ON public.investigator_sessions;
+DROP POLICY IF EXISTS "inv_sessions_delete"         ON public.investigator_sessions;
 
+-- investigators: 全員閲覧可、操作は本人のみ
 CREATE POLICY "investigators_select_public" ON public.investigators
   FOR SELECT USING (true);
 
@@ -95,11 +103,9 @@ CREATE POLICY "investigators_update_own" ON public.investigators
 CREATE POLICY "investigators_delete_own" ON public.investigators
   FOR DELETE USING (auth.uid() = user_id);
 
--- investigator_sessions: 探索者オーナーのみ操作
+-- investigator_sessions: 探索者オーナーのみ操作、閲覧は全員
 CREATE POLICY "inv_sessions_select" ON public.investigator_sessions
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.investigators WHERE id = investigator_id AND user_id = auth.uid())
-  );
+  FOR SELECT USING (true);
 
 CREATE POLICY "inv_sessions_insert" ON public.investigator_sessions
   FOR INSERT WITH CHECK (

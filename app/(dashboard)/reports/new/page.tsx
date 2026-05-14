@@ -49,6 +49,8 @@ export default function NewReportPage() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [createdReportId, setCreatedReportId] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [showCanRunPrompt, setShowCanRunPrompt] = useState(false)
+  const [canRunAdding, setCanRunAdding] = useState(false)
 
   // Fetch user profile for tier limits
   React.useEffect(() => {
@@ -283,6 +285,20 @@ export default function NewReportPage() {
           })))
       }
 
+      // KP として参加していた場合、can_run 提案を準備
+      const selfAsKp = participants.some(p => p.role === 'KP' && (p.user_id === user.id || p.username === profile?.username))
+      if (selfAsKp && scenarioName.trim()) {
+        // 既に can_run 登録済みか確認
+        const { data: existing } = await supabase
+          .from('scenario_preferences')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('scenario_name', scenarioName.trim())
+          .eq('preference_type', 'can_run')
+          .maybeSingle()
+        if (!existing) setShowCanRunPrompt(true)
+      }
+
       // Success
       setCreatedReportId(report.id)
       setShowSuccess(true)
@@ -300,6 +316,22 @@ export default function NewReportPage() {
     }
   }
 
+  async function handleAddCanRun() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    setCanRunAdding(true)
+    await supabase.from('scenario_preferences').upsert({
+      user_id: user.id,
+      scenario_name: scenarioName.trim(),
+      scenario_author: scenarioAuthor.trim() || null,
+      preference_type: 'can_run',
+    }, { onConflict: 'user_id,scenario_name,preference_type' })
+    setCanRunAdding(false)
+    setShowCanRunPrompt(false)
+    toast.success('「回せる」リストに追加しました')
+  }
+
   return (
     <>
       <SuccessAnimation
@@ -311,6 +343,39 @@ export default function NewReportPage() {
           }
         }}
       />
+
+      {/* can_run 自動提案ダイアログ */}
+      {showCanRunPrompt && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card p-5 space-y-4 shadow-xl">
+            <div>
+              <p className="font-semibold text-sm">「回せる」リストに追加しますか？</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                「<span className="text-foreground font-medium">{scenarioName}</span>」をKPした記録として、
+                マッチング用の「回せる」リストに追加できます。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={handleAddCanRun}
+                disabled={canRunAdding}
+                className="flex-1"
+              >
+                {canRunAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : '追加する'}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowCanRunPrompt(false)}
+                className="flex-1"
+              >
+                スキップ
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">

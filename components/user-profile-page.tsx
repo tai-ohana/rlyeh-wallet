@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Download, ImageDown, ChevronDown, ChevronRight } from 'lucide-react'
+import { BookOpen, Users, Trophy, Clock, Percent, UserCheck, UserPlus, Loader2, Download, ImageDown } from 'lucide-react'
 import type { Profile, PlayReport, ScenarioPreference } from '@/lib/types'
 import { TierBadge } from '@/components/tier-badge'
 import StatCard from '@/components/stat-card'
@@ -20,6 +20,7 @@ import { InvestigatorRank } from '@/components/dashboard-widgets'
 import { SessionCard, SessionCardGrid } from '@/components/session-card'
 import { ProfileCardExport } from '@/components/profile-card-export'
 import { exportProfileCardAsPng } from '@/lib/export-card'
+import { FolderCard, calculateFolderStats } from '@/components/folder-card'
 
 interface UserStats {
   totalSessions: number
@@ -622,9 +623,9 @@ export function UserProfilePageClient() {
               <TierBadge profile={profile} size="md" />
             </div>
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
-            {profile.twitter_id && (
+            {(profile.twitter_id || profile.username) && (
               <a
-                href={`https://twitter.com/${profile.twitter_id}`}
+                href={`https://twitter.com/${profile.twitter_id || profile.username}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground mt-1"
@@ -853,7 +854,7 @@ export function UserProfilePageClient() {
   )
 }
 
-// ─── Wallet tab: ミニカードを折りたたみフォルダ化 ────────────────────────────
+// ─── Wallet tab: ミニカードをFolderCardスタイルで折りたたみ表示 ──────────────
 function WalletTab({ reports, isOwnProfile }: { reports: PlayReport[]; isOwnProfile: boolean }) {
   const [miniOpen, setMiniOpen] = useState(false)
 
@@ -868,6 +869,19 @@ function WalletTab({ reports, isOwnProfile }: { reports: PlayReport[]; isOwnProf
   const normalReports = reports.filter(r => !r.is_mini)
   const miniReports   = reports.filter(r => r.is_mini)
 
+  // ミニカード用の仮想フォルダオブジェクト
+  const miniFolder = {
+    id: 'mini-cards',
+    user_id: '',
+    name: 'ミニカード',
+    description: null,
+    cover_report_id: null,
+    sort_order: 0,
+    created_at: '',
+    updated_at: '',
+    reports: miniReports,
+  }
+
   return (
     <div className="space-y-4">
       {/* 通常カード */}
@@ -879,25 +893,12 @@ function WalletTab({ reports, isOwnProfile }: { reports: PlayReport[]; isOwnProf
         </SessionCardGrid>
       )}
 
-      {/* ミニカード折りたたみフォルダ */}
+      {/* ミニカード — FolderCardで折りたたみ */}
       {miniReports.length > 0 && (
-        <div className="rounded-2xl border border-border/50 overflow-hidden">
-          {/* フォルダヘッダー */}
-          <button
-            onClick={() => setMiniOpen(v => !v)}
-            className="w-full flex items-center gap-2 px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
-          >
-            {miniOpen
-              ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-              : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-            }
-            <span className="text-sm font-medium">ミニカード</span>
-            <span className="text-xs text-muted-foreground ml-1">{miniReports.length}件</span>
-          </button>
-
-          {/* カード一覧（展開時のみ） */}
+        <div>
+          <FolderCard folder={miniFolder} onClick={() => setMiniOpen(v => !v)} />
           {miniOpen && (
-            <div className="p-3 space-y-2">
+            <div className="mt-2 space-y-2">
               {miniReports.map(report => (
                 <SessionCard key={report.id} report={report} compact showAuthor={false} showEdit={isOwnProfile} />
               ))}

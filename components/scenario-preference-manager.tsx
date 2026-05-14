@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, X, Heart, Wand2, Loader2 } from 'lucide-react'
+import { Plus, X, Heart, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ScenarioPreference, ScenarioPreferenceType, Profile } from '@/lib/types'
 import { getProfileLimits, canUseFeature } from '@/lib/tier-limits'
@@ -27,7 +27,7 @@ export function ScenarioPreferenceManager({ userId, profile }: ScenarioPreferenc
     const [suggestions, setSuggestions] = useState<string[]>([])
 
     const limits = getProfileLimits(profile)
-    const canUse = canUseFeature(profile, 'canUseMatching')
+    const isFree = !profile?.tier || profile.tier === 'free'
 
     useEffect(() => {
         fetchPreferences()
@@ -123,36 +123,28 @@ export function ScenarioPreferenceManager({ userId, profile }: ScenarioPreferenc
         }
     }
 
-    if (!canUse) {
-        return (
-            <Card className="border-dashed">
-                <CardContent className="py-8 text-center">
-                    <Wand2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="font-semibold mb-2">マッチング機能はProプラン以上で利用可能</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                        回りたいシナリオを設定すると、そのシナリオを回したKPの投稿が表示されます
-                    </p>
-                    <Button variant="outline" asChild>
-                        <a href="/pricing">プランを確認する</a>
-                    </Button>
-                </CardContent>
-            </Card>
-        )
-    }
-
     const wantToPlayList = preferences.filter(p => p.preference_type === 'want_to_play')
     const canRunList = preferences.filter(p => p.preference_type === 'can_run')
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-pink-500" />
-                    シナリオ希望設定
-                </CardTitle>
-                <CardDescription>
-                    マッチング機能で次の卓を見つけましょう
-                </CardDescription>
+                <div className="flex items-start justify-between gap-2">
+                    <div>
+                        <CardTitle className="flex items-center gap-2">
+                            <Heart className="w-5 h-5 text-pink-500" />
+                            シナリオ希望設定
+                        </CardTitle>
+                        <CardDescription>
+                            マッチング機能で次の卓を見つけましょう
+                        </CardDescription>
+                    </div>
+                    {isFree && (
+                        <a href="/pricing" className="shrink-0 text-xs text-amber-600 border border-amber-500/40 bg-amber-500/10 rounded-md px-2 py-1 hover:bg-amber-500/20 transition-colors">
+                            Proで上限UP →
+                        </a>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ScenarioPreferenceType)}>

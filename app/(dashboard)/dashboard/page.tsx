@@ -353,10 +353,10 @@ export default async function DashboardPage() {
     }))
 
   // =============================================
-  // Pro Feature: Matching Recommendations
+  // Matching Recommendations（全ユーザー対象、友達の友達優先）
   // =============================================
   let kpReports: PlayReport[] = []
-  let interestedPlayers: { profile: Profile; scenarioName: string }[] = []
+  let interestedPlayers: { profile: Profile; scenarioName: string; hopDistance: 1 | 2 | 3 }[] = []
   let scenarioPreferences: ScenarioPreference[] = []
 
   if (canUseMatching) {
@@ -368,10 +368,30 @@ export default async function DashboardPage() {
 
     scenarioPreferences = prefs || []
 
+    // ─── ソーシャルグラフ（2ホップ）を構築 ────────────────────────────
+    const { data: hop1Data } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+    const hop1Ids = (hop1Data ?? []).map(f => f.following_id)
+
+    let hop2Ids: string[] = []
+    if (hop1Ids.length > 0) {
+      const { data: hop2Data } = await supabase
+        .from('follows')
+        .select('following_id')
+        .in('follower_id', hop1Ids)
+        .neq('following_id', user.id)
+      hop2Ids = (hop2Data ?? [])
+        .map(f => f.following_id)
+        .filter(id => !hop1Ids.includes(id))
+    }
+    const connectedIds = [...new Set([...hop1Ids, ...hop2Ids])]
+
     const wantToPlay = scenarioPreferences.filter(p => p.preference_type === 'want_to_play')
     const canRun = scenarioPreferences.filter(p => p.preference_type === 'can_run')
 
-    // Get KP reports for "want to play" scenarios
+    // Get KP reports for "want to play" scenarios — ソーシャルグラフ内優先
     if (wantToPlay.length > 0) {
       const scenarioNames = wantToPlay.map(p => p.scenario_name)
 
@@ -379,7 +399,7 @@ export default async function DashboardPage() {
         .from('play_reports')
         .select(`
           *,
-          profile:profiles!play_reports_user_id_fkey(id, username, display_name, avatar_url),
+          profile:profiles!play_reports_user_id_fkey(id, username, display_name, avatar_url, twitter_id),
           participants:play_report_participants(role, user_id)
         `)
         .in('scenario_name', scenarioNames)
@@ -387,15 +407,24 @@ export default async function DashboardPage() {
         .eq('is_mini', false)
         .neq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(30)
 
-      // Filter to only KP reports
-      kpReports = (kpData || []).filter(report =>
+      // KP フィルタ → ホップ距離でスコア付けして上位10件
+      const kpFiltered = (kpData || []).filter(report =>
         report.participants?.some((p: any) => p.role === 'KP' && p.user_id === report.user_id)
       )
+      kpReports = kpFiltered
+        .map(r => ({
+          ...r,
+          _hopScore: hop1Ids.includes(r.user_id) ? 3
+            : hop2Ids.includes(r.user_id) ? 2
+            : 1,
+        }))
+        .sort((a, b) => b._hopScore - a._hopScore)
+        .slice(0, 10)
     }
 
-    // Get interested players for "can run" scenarios
+    // Get interested players for "can run" scenarios — ソーシャルグラフ内優先
     if (canRun.length > 0) {
       const scenarioNames = canRun.map(p => p.scenario_name)
 
@@ -408,12 +437,19 @@ export default async function DashboardPage() {
         .in('scenario_name', scenarioNames)
         .eq('preference_type', 'want_to_play')
         .neq('user_id', user.id)
-        .limit(10)
+        .limit(30)
 
-      interestedPlayers = (playerPrefs || []).map(p => ({
-        profile: p.profile as unknown as Profile,
-        scenarioName: p.scenario_name,
-      })).filter(p => p.profile)
+      interestedPlayers = (playerPrefs || [])
+        .map(p => {
+          const prof = p.profile as unknown as Profile
+          const hopDistance: 1 | 2 | 3 = hop1Ids.includes(prof?.id) ? 1
+            : hop2Ids.includes(prof?.id) ? 2
+            : 3
+          return { profile: prof, scenarioName: p.scenario_name, hopDistance }
+        })
+        .filter(p => p.profile)
+        .sort((a, b) => a.hopDistance - b.hopDistance)
+        .slice(0, 10)
     }
   }
 

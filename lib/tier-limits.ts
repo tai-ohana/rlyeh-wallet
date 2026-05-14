@@ -23,10 +23,10 @@ export const TIER_LIMITS = {
     canBeFollowed: false, // Only streamers can be followed
     hasProBadge: false,
     hasStreamerBadge: false,
-    // Pro Plan: Matching features
-    canUseMatching: false,
+    // Matching features — 全ユーザーに開放（データ収集のため）
+    canUseMatching: true,
     canHideAds: false,
-    maxScenarioPreferences: 0,
+    maxScenarioPreferences: 5, // free: 各5件まで
     // Pro Plan: Advanced features
     canUseMarkdownMemo: false,
     canUsePrivateNotes: false,
@@ -54,10 +54,10 @@ export const TIER_LIMITS = {
     canBeFollowed: false,
     hasProBadge: true,
     hasStreamerBadge: false,
-    // Pro Plan: Matching features
+    // Matching features
     canUseMatching: true,
     canHideAds: true,
-    maxScenarioPreferences: 10,
+    maxScenarioPreferences: 30, // pro: 各30件まで
     // Pro Plan: Advanced features
     canUseMarkdownMemo: true,
     canUsePrivateNotes: true,
@@ -85,10 +85,10 @@ export const TIER_LIMITS = {
     canBeFollowed: true,
     hasProBadge: true,
     hasStreamerBadge: true,
-    // Pro Plan: Matching features (inherited)
+    // Matching features (inherited)
     canUseMatching: true,
     canHideAds: true,
-    maxScenarioPreferences: 10,
+    maxScenarioPreferences: 30, // streamer: 各30件まで
     // Pro Plan: Advanced features (inherited)
     canUseMarkdownMemo: true,
     canUsePrivateNotes: true,
@@ -161,11 +161,24 @@ export const TIER_DISPLAY_NAMES: Record<UserTier, string> = {
   streamer: '配信者',
 }
 
-// Tier pricing (monthly in JPY)
+// Tier pricing (JPY)
+// pro = 買い切り、streamer = 準備中
 export const TIER_PRICING: Record<UserTier, number> = {
   free: 0,
-  pro: 500,
-  streamer: 1200,
+  pro: 980,       // 買い切り（ローンチ割引価格）
+  streamer: 0,    // 準備中（未販売）
+}
+
+export const TIER_IS_ONE_TIME: Record<UserTier, boolean> = {
+  free: false,
+  pro: true,      // 買い切り
+  streamer: false, // TBD
+}
+
+export const TIER_AVAILABLE: Record<UserTier, boolean> = {
+  free: true,
+  pro: true,
+  streamer: false, // 準備中
 }
 
 // Check if tier is active (not expired)

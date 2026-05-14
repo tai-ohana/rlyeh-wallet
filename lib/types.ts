@@ -1,5 +1,28 @@
 // R'lyeh Wallet Types
 
+// ─── Scenario DB ──────────────────────────────────────────────────
+export interface ScenarioStats {
+  scenario_name: string
+  scenario_author: string | null
+  total_sessions: number
+  unique_reporters: number
+  avg_duration: number | null
+  total_duration: number
+  success_rate: number | null
+  first_played_at: string | null
+  last_played_at: string | null
+  cover_image_url: string | null
+}
+
+export interface ScenarioKpStat {
+  scenario_name: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  run_count: number
+  last_run_at: string | null
+}
+
 // ─── Investigator (探索者) ────────────────────────────────────────
 export type InvestigatorStatus = 'active' | 'lost' | 'retired'
 
