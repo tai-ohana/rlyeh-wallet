@@ -110,25 +110,35 @@ export default async function DashboardPage() {
   // =============================================
   // Survival rate for SAN値 calculation
   // =============================================
-  const { data: userParticipants } = await supabase
-    .from('play_report_participants')
-    .select('role, result, user_id')
+  // KP: 自分が作成したレポート数 = KPしたセッション数
+  // （オートコンプリート未使用でuser_idが入っていない場合もカバー）
+  const { count: kpSessions } = await supabase
+    .from('play_reports')
+    .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  let plSessions = 0
+  // PL: 参加者テーブルで自分がPLとして記録されているセッション数
+  // result の有無に関わらずカウント（未入力でも PLだったことは確か）
+  const { data: userParticipants } = await supabase
+    .from('play_report_participants')
+    .select('role, result')
+    .eq('user_id', user.id)
+    .eq('role', 'PL')
+
+  const plSessions = userParticipants?.length ?? 0
+
+  // 生還率: result が記録されているセッションのみで計算
   let surviveCount = 0
-  let kpSessions = 0
+  let resultedSessions = 0
   userParticipants?.forEach(p => {
-    if (p.role === 'PL') {
-      if (p.result === 'survive' || p.result === 'dead' || p.result === 'insane') {
-        plSessions++
-        if (p.result === 'survive') surviveCount++
-      }
-    } else if (p.role === 'KP') {
-      kpSessions++
+    if (p.result === 'survive' || p.result === 'dead' || p.result === 'insane') {
+      resultedSessions++
+      if (p.result === 'survive') surviveCount++
     }
   })
-  const survivalRate = plSessions > 0 ? Math.round((surviveCount / plSessions) * 100) : 100
+  const survivalRate = resultedSessions > 0
+    ? Math.round((surviveCount / resultedSessions) * 100)
+    : 100
 
   // SAN値: Based on survival rate and activity — fun gamification
   // Higher survival rate = higher SAN, active play keeps it up
