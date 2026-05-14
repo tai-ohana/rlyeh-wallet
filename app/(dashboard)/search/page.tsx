@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, User, BookOpen, Loader2, LayoutGrid, List, UserPlus, UserCheck, Clock, Star, Tag, TrendingUp, Users, KeyRound } from 'lucide-react'
+import { Search, User, BookOpen, Loader2, LayoutGrid, List, UserPlus, UserCheck, Clock, Star, Tag, TrendingUp, Users, KeyRound, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { SessionCard, SessionCardGrid } from '@/components/session-card'
 import { toast } from 'sonner'
-import type { PlayReport, Profile } from '@/lib/types'
+import type { PlayReport, Profile, ScenarioStats, ScenarioKpStat } from '@/lib/types'
 import { getProfileLimits } from '@/lib/tier-limits'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -67,8 +67,12 @@ function SearchPageContent() {
 
   // Discovery state (shown before search)
   const [discoveryReports, setDiscoveryReports] = useState<PlayReport[]>([])
-  const [discoveryKPs, setDiscoveryKPs] = useState<Profile[]>([])
+  const [discoveryScenarios, setDiscoveryScenarios] = useState<ScenarioStats[]>([])
   const [discoveryLoading, setDiscoveryLoading] = useState(true)
+
+  // シナリオ検索結果（検索後）
+  const [scenarioMatch, setScenarioMatch] = useState<ScenarioStats | null>(null)
+  const [scenarioKPs, setScenarioKPs] = useState<ScenarioKpStat[]>([])
 
   useEffect(() => {
     async function loadDiscovery() {
@@ -93,24 +97,14 @@ function SearchPageContent() {
 
       setDiscoveryReports((reports || []).map(r => ({ ...r, likes_count: r.likes?.length || 0 })) as PlayReport[])
 
-      // Active KPs (recent KP participants)
-      const { data: kpParticipants } = await supabase
-        .from('play_report_participants')
-        .select('user_id')
-        .eq('role', 'KP')
-        .not('user_id', 'is', null)
-        .limit(30)
+      // 人気シナリオ（scenario_stats から上位5件）
+      const { data: topScenarios } = await supabase
+        .from('scenario_stats')
+        .select('*')
+        .order('total_sessions', { ascending: false })
+        .limit(5)
 
-      const kpIds = [...new Set((kpParticipants || []).map(p => p.user_id).filter(Boolean))] as string[]
-      if (kpIds.length > 0) {
-        const { data: kpProfiles } = await supabase
-          .from('profiles')
-          .select('*')
-          .in('id', kpIds.slice(0, 6))
-
-        setDiscoveryKPs(kpProfiles || [])
-      }
-
+      setDiscoveryScenarios((topScenarios || []) as ScenarioStats[])
       setDiscoveryLoading(false)
     }
     loadDiscovery()
@@ -279,6 +273,29 @@ function SearchPageContent() {
         .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
         .limit(10)
 
+      // シナリオDBとの照合（クエリにシナリオ名が含まれる場合）
+      const { data: scenarioData } = await supabase
+        .from('scenario_stats')
+        .select('*')
+        .ilike('scenario_name', `%${query}%`)
+        .order('total_sessions', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (scenarioData) {
+        setScenarioMatch(scenarioData as ScenarioStats)
+        const { data: kpData } = await supabase
+          .from('scenario_kp_stats')
+          .select('*')
+          .eq('scenario_name', scenarioData.scenario_name)
+          .order('run_count', { ascending: false })
+          .limit(8)
+        setScenarioKPs((kpData || []) as ScenarioKpStat[])
+      } else {
+        setScenarioMatch(null)
+        setScenarioKPs([])
+      }
+
       setSearchResults({
         reports: reports || [],
         users: users || [],
@@ -424,27 +441,21 @@ function SearchPageContent() {
                 )}
               </div>
 
-              {/* Active KPs */}
-              {!discoveryLoading && discoveryKPs.length > 0 && (
+              {/* 人気シナリオ × KP */}
+              {!discoveryLoading && discoveryScenarios.length > 0 && (
                 <div className="space-y-3">
-                  <h2 className="text-base font-semibold flex items-center gap-2">
-                    <KeyRound className="w-4 h-4 text-primary" />
-                    KP経験者
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {discoveryKPs.map(kp => (
-                      <Link key={kp.id} href={`/user/${kp.username}`}>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-card border border-border/50 hover:border-primary/40 hover:bg-accent transition-colors">
-                          <Avatar className="w-6 h-6">
-                            <AvatarImage src={kp.avatar_url || undefined} />
-                            <AvatarFallback className="text-[10px]">
-                              {(kp.display_name || kp.username)?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium">{kp.display_name || kp.username}</span>
-                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 bg-blue-500/10 text-blue-600">KP</Badge>
-                        </div>
-                      </Link>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-primary" />
+                      人気シナリオのKP
+                    </h2>
+                    <Link href="/scenarios" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors">
+                      シナリオDB <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <div className="space-y-2">
+                    {discoveryScenarios.map(s => (
+                      <ScenarioKpRow key={s.scenario_name} scenario={s} />
                     ))}
                   </div>
                 </div>
@@ -480,6 +491,55 @@ function SearchPageContent() {
           {/* Results */}
           {hasSearched && (
             <div className="space-y-6">
+
+              {/* シナリオDBマッチ */}
+              {scenarioMatch && (
+                <div className="rounded-2xl border border-border/50 bg-card/60 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">シナリオDB</p>
+                      <p className="font-semibold text-sm mt-0.5">{scenarioMatch.scenario_name}</p>
+                    </div>
+                    <Link
+                      href={`/scenarios/${encodeURIComponent(scenarioMatch.scenario_name)}`}
+                      className="text-xs text-primary flex items-center gap-0.5 hover:underline"
+                    >
+                      詳細 <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  {/* 統計 */}
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>{scenarioMatch.total_sessions}セッション</span>
+                    <span>{scenarioMatch.unique_reporters}人が記録</span>
+                    {scenarioMatch.success_rate !== null && (
+                      <span>生還率 {scenarioMatch.success_rate}%</span>
+                    )}
+                  </div>
+                  {/* KP一覧 */}
+                  {scenarioKPs.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">KP経験者</p>
+                      <div className="flex flex-wrap gap-2">
+                        {scenarioKPs.map(kp => kp.username && (
+                          <Link key={kp.username} href={`/user/${kp.username}`}>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-background border border-border/50 hover:border-primary/40 hover:bg-accent transition-colors">
+                              <Avatar className="w-5 h-5">
+                                <AvatarImage src={kp.avatar_url || undefined} />
+                                <AvatarFallback className="text-[9px]">
+                                  {(kp.display_name || kp.username).charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium">{kp.display_name || kp.username}</span>
+                              <span className="text-[10px] text-muted-foreground">{kp.run_count}回</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Users */}
               {searchResults.users.length > 0 && (
                 <div className="space-y-3">
@@ -759,8 +819,8 @@ function UserCard({ user }: { user: Profile }) {
       .select('*', { count: 'exact', head: true })
       .eq('follower_id', currentUserId)
 
-    if ((followCount || 0) >= limits.maxFollows) {
-      toast.error(`フォロー上限（${limits.maxFollows}人）に達しています。Proプランにアップグレードすると上限が500人になります。`)
+    if ((followCount || 0) >= limits.maxFollowing) {
+      toast.error(`フォロー上限（${limits.maxFollowing}人）に達しています。Proプランにアップグレードすると上限が500人になります。`)
       return
     }
 
@@ -949,8 +1009,8 @@ function StreamerCard({ user }: { user: Profile }) {
         .select('*', { count: 'exact', head: true })
         .eq('follower_id', currentUserId)
 
-      if ((followCount || 0) >= limits.maxFollows) {
-        toast.error(`フォロー上限（${limits.maxFollows}人）に達しています。Proプランにアップグレードすると上限が500人になります。`)
+      if ((followCount || 0) >= limits.maxFollowing) {
+        toast.error(`フォロー上限（${limits.maxFollowing}人）に達しています。Proプランにアップグレードすると上限が500人になります。`)
         setLoading(false)
         return
       }
@@ -1032,6 +1092,50 @@ function StreamerCard({ user }: { user: Profile }) {
           </div>
         </CardContent>
       </Card>
+    </Link>
+  )
+}
+
+// ─── シナリオ × KP 行（検索前の人気シナリオ表示） ──────────────────────────
+function ScenarioKpRow({ scenario }: { scenario: ScenarioStats }) {
+  const [kps, setKps] = useState<ScenarioKpStat[]>([])
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('scenario_kp_stats')
+        .select('*')
+        .eq('scenario_name', scenario.scenario_name)
+        .order('run_count', { ascending: false })
+        .limit(5)
+      setKps((data || []) as ScenarioKpStat[])
+    }
+    load()
+  }, [scenario.scenario_name])
+
+  return (
+    <Link href={`/scenarios/${encodeURIComponent(scenario.scenario_name)}`}>
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-card/60 border border-border/40 hover:border-border/70 transition-colors">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{scenario.scenario_name}</p>
+          <p className="text-xs text-muted-foreground">{scenario.total_sessions}セッション</p>
+        </div>
+        <div className="flex items-center -space-x-2">
+          {kps.filter(k => k.username).slice(0, 4).map(kp => (
+            <Avatar key={kp.username} className="w-6 h-6 border-2 border-background">
+              <AvatarImage src={kp.avatar_url || undefined} />
+              <AvatarFallback className="text-[9px]">
+                {(kp.display_name || kp.username).charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+          {kps.length === 0 && (
+            <span className="text-xs text-muted-foreground/50">—</span>
+          )}
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+      </div>
     </Link>
   )
 }
